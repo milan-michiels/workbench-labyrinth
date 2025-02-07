@@ -1,0 +1,48 @@
+<mujoco model="labyrinth">
+    <compiler inertiafromgeom="true"/>
+    <option gravity="0 0 -9.81"/>
+
+    <!-- Default Properties -->
+    <default>
+        <geom friction="0.8 0.1 0.1" density="500" solimp="0.99 0.99 0.01"/>
+        <joint damping="5"/>  <!-- Prevents jitter -->
+    </default>
+
+    <!-- World -->
+    <worldbody>
+        <!-- Board -->
+        <body name="board" pos="0 0 0.5">
+            <inertial pos="0 0 0" mass="5" diaginertia="1 1 1"/>
+            <joint name="tilt_x" type="hinge" axis="1 0 0" range="-25 25"/>
+            <joint name="tilt_y" type="hinge" axis="0 1 0" range="-25 25"/>
+            <geom name="board_geom" type="box" size="0.5 0.5 0.01" rgba="0.7 0.7 0.7 1"/>
+
+            <!-- Walls -->
+            <geom name="wall_left" type="box" size="0.01 0.5 0.04" pos="-0.49 0 0.05" rgba="255 255 255 1"/>
+            <geom name="wall_right" type="box" size="0.01 0.5 0.04" pos="0.49 0 0.05" rgba="255 255 255 1"/>
+            <geom name="wall_top" type="box" size="0.5 0.01 0.04" pos="0 0.49 0.05" rgba="255 255 255 1"/>
+            <geom name="wall_bottom" type="box" size="0.5 0.01 0.04" pos="0 -0.49 0.05" rgba="255 255 255 1"/>
+            
+            <site name="sensor_plate_site" pos="0.35 0.35 0.025" type="box" size="0.05 0.05 0.01" rgba="0 1 0 0.5"/>
+        </body>
+
+        <!-- Ball in Lower Left Corner-->
+        <body name="ball" pos="-0.4 -0.4 0.55">
+            <joint name="free_ball" type="free"/>
+            <geom name="ball_geom" type="sphere" size="0.05" mass="0.01" rgba="1 0 0 1"/>
+        </body>
+
+        <!-- Camera -->
+        <camera name="top_view" pos="0 0 1.5" xyaxes="1 0 0 0 1 0"/>
+    </worldbody>
+
+    <sensor>
+        <touch name="sensor_touch" site="sensor_plate_site"/>
+    </sensor>
+
+    <!-- Actuators (Instant Tilt) -->
+    <actuator>
+        <position name="tilt_x_actuator" joint="tilt_x" kp="10" ctrlrange="-1 1"/>
+        <position name="tilt_y_actuator" joint="tilt_y" kp="10" ctrlrange="-1 1"/>
+    </actuator>
+</mujoco>

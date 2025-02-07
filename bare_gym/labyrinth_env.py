@@ -12,7 +12,7 @@ class LabyrinthEnv(gym.Env):
     """
     metadata = {'render_modes': ['human', 'rgb_array'], 'render_fps': 30}
 
-    def __init__(self, maze_size=(8, 8), wall_thickness=0.5, render_mode='human', obs_resolution=8):
+    def __init__(self, maze_size=(9, 9), wall_thickness=0.5, render_mode='human'):
         super().__init__()
 
         # Environment parameters
@@ -23,7 +23,7 @@ class LabyrinthEnv(gym.Env):
         self.friction = 0.2  # reduced friction
         self.render_mode = render_mode
         self.prev_distance = None
-        self.obs_resolution = obs_resolution
+        # self.obs_resolution = obs_resolution
 
         # Ball physics parameters
         self.gravity = 9.81  # reduced gravity
@@ -86,8 +86,8 @@ class LabyrinthEnv(gym.Env):
         obs[self.maze == 1] = 255  # Walls
         x, y, _, _ = self.state
 
-        x = np.clip(int(x), 0, self.maze.shape[1] - 0.1)
-        y = np.clip(int(y), 0, self.maze.shape[0] - 0.1)
+        # x = np.clip(int(x), 0, self.maze.shape[1] - 0.1)
+        # y = np.clip(int(y), 0, self.maze.shape[0] - 0.1)
 
         obs[int(y), int(x)] = 128  # Ball position
         return obs
@@ -211,8 +211,8 @@ class LabyrinthEnv(gym.Env):
         new_x = x + vx * self.dt
         new_y = y + vy * self.dt
 
-        new_x = np.clip(new_x, 0, self.maze_size[1] - 0.1)
-        new_y = np.clip(new_y, 0, self.maze_size[0] - 0.1)
+        # new_x = np.clip(new_x, 0, self.maze_size[1] - 0.1)
+        # new_y = np.clip(new_y, 0, self.maze_size[0] - 0.1)
 
         if self._check_collision(new_x, new_y):
             # Bounce back with some energy loss
