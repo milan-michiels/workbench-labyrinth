@@ -1,0 +1,7 @@
+gymnasium
+stable_baselines3
+matplotlib
+numpy
+mujoco
+opencv-python
+tensorboard

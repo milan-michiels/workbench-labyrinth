@@ -1,20 +1,13 @@
 <mujoco model="labyrinth">
     <compiler inertiafromgeom="true"/>
-    <option gravity="0 0 -9.81"/>
-
-    <!-- Default Properties -->
-    <default>
-        <geom friction="0.8 0.1 0.1" density="500" solimp="0.99 0.99 0.01"/>
-        <joint damping="5"/>  <!-- Prevents jitter -->
-    </default>
 
     <!-- World -->
     <worldbody>
         <!-- Board -->
         <body name="board" pos="0 0 0.5">
             <inertial pos="0 0 0" mass="5" diaginertia="1 1 1"/>
-            <joint name="tilt_x" type="hinge" axis="1 0 0" range="-25 25"/>
-            <joint name="tilt_y" type="hinge" axis="0 1 0" range="-25 25"/>
+            <joint name="tilt_x" pos="0 0 0" axis="1 0 0" range="-2 2" damping="20"/>
+            <joint name="tilt_y" pos="0 0 0" axis="0 1 0" range="-2 2" damping="20"/>
             <geom name="board_geom" type="box" size="0.5 0.5 0.01" rgba="0.7 0.7 0.7 1"/>
 
             <!-- Walls -->
@@ -42,7 +35,7 @@
 
     <!-- Actuators (Instant Tilt) -->
     <actuator>
-        <position name="tilt_x_actuator" joint="tilt_x" kp="10" ctrlrange="-1 1"/>
-        <position name="tilt_y_actuator" joint="tilt_y" kp="10" ctrlrange="-1 1"/>
+        <general name="tilt_x_actuator" joint="tilt_x" ctrlrange="-1 1"/>
+        <general name="tilt_y_actuator" joint="tilt_y" ctrlrange="-1 1"/>
     </actuator>
 </mujoco>
