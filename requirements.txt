@@ -10,3 +10,4 @@ torch
 moviepy==1.0.3
 pyopengl
 glfw
+watchdog

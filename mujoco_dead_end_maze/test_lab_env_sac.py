@@ -9,13 +9,11 @@ from stable_baselines3.common.monitor import Monitor
 from labyrinth_env import LabyrinthEnv
 from tensorboard_integration import TensorboardCallback
 
-
-logger=logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-def main():
-    # env = LabyrinthEnv(episode_length=1000, render_mode='rgb_array')
 
+def main():
     eval_env = LabyrinthEnv(episode_length=5000, render_mode='rgb_array')
     eval_env = Monitor(eval_env)
 
