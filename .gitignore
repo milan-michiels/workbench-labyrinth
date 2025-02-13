@@ -237,7 +237,7 @@ $RECYCLE.BIN/
 .cadence/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,macos,windows
-/mujoco_impl/sac_labyrinth_tensorboard/
+**/sac_labyrinth_tensorboard/
 **/vids/
 /bare_gym/vids/
-/mujoco_impl/output/
+**/output/

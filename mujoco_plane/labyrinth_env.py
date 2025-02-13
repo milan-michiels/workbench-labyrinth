@@ -56,7 +56,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         ball_x_px, ball_y_px = self.world_to_pixel(ball_pos, img_width, img_height)
 
-        crop_half = 40
+        crop_half = 60
 
         # Calculate crop boundaries with padding
         x1 = max(0, ball_x_px - crop_half)
