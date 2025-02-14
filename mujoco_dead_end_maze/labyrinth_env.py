@@ -11,7 +11,7 @@ from numpy._typing import NDArray
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
     metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 100}
 
-    def __init__(self, episode_length=500, resolution=(64, 64), **kwargs):
+    def __init__(self, episode_length=500, resolution=(64, 64), intermediate_goals=5, **kwargs):
         utils.EzPickle.__init__(self, resolution, episode_length, **kwargs)
 
         self.episode_length = episode_length
@@ -19,7 +19,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.observation_space = spaces.Dict(
             image=spaces.Box(low=0, high=255, shape=(resolution[0], resolution[1], 3), dtype=np.uint8),
             states=spaces.Box(low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32),
-            goal=spaces.Box(low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32),
+            goal=spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float32),
             progress=spaces.Box(low=0, high=np.inf, shape=(1,), dtype=np.float32)
         )
 
@@ -27,21 +27,41 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         self.prev_distance = None
         self.succes = 0
+        self.intermediate_goals = intermediate_goals
 
         MujocoEnv.__init__(self, observation_space=self.observation_space,
                            model_path="./resources/labyrinth_wo_meshes_actuators.xml", camera_name="top_view",
                            frame_skip=5, **kwargs)
 
-        site_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "sensor_plate_site")  # Get site ID
-        self.goal_pos = self.model.site_pos[site_id, :2]  # Extract (x, y) position
+        end_goal_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "end_goal")  # Get site ID
+        self.end_goal_pos = self.model.site_pos[end_goal_id, :2]  # Extract (x, y) position
+        self.end_goal_size = self.model.site_size[end_goal_id, :2]  # Half extents
+
+        for i in range(1, self.intermediate_goals + 1):
+            goal_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, f"goal_{i}")
+            intermediate_goal_pos = self.model.site_pos[goal_id, :2]
+            intermediate_goal_size = self.model.site_size[goal_id, :2]
+            setattr(self, f"intermediate_goal_{i}_pos", intermediate_goal_pos)
+            setattr(self, f"intermediate_goal_{i}_reached", False)
+            setattr(self, f"intermediate_goal_{i}_size", intermediate_goal_size)
 
     def _get_obs(self):
         return {
             "image": self._get_image(),
             "states": self.data.body("ball").xpos[:2],
             "progress": np.array([self._compute_distance()], dtype=np.float32),
-            "goal": self.goal_pos
+            "goal": np.array(self._get_goal_coordinates(), dtype=np.float32)
         }
+
+    def _get_goal_coordinates(self):
+        goal_coordinates = []
+
+        for i in range(1, self.intermediate_goals + 1):
+            goal_coordinates.append(getattr(self, f"intermediate_goal_{i}_pos"))
+
+        goal_coordinates.append(self.end_goal_pos)
+
+        return np.concatenate(goal_coordinates, axis=0)
 
     def _get_image(self):
         img = self.render()  # Get full RGB image (H, W, 3)
@@ -57,7 +77,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         ball_x_px, ball_y_px = self.world_to_pixel(ball_pos, img_width, img_height)
 
-        crop_half = 60
+        crop_half = 80
 
         # Calculate crop boundaries with padding
         x1 = max(0, ball_x_px - crop_half)
@@ -140,13 +160,17 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         obs = self._get_obs()
         reward = self._compute_reward()
 
-        done = bool(self._is_done())
+        done = bool(self._goal_reached("end_goal"))
         truncated = self.step_number >= self.episode_length
         if done:
             self.succes += 1
         return obs, reward, done, truncated, {}
 
     def reset_model(self):
+
+        for i in range(1, self.intermediate_goals + 1):
+            setattr(self, f"intermediate_goal_{i}_reached", False)
+
         self.step_number = 0
         self.prev_distance = None
 
@@ -158,7 +182,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         ball_start = 2
         # Randomize qpos for the ball
         qpos[ball_start:] = self.init_qpos[ball_start:] + self.np_random.uniform(
-            size=qpos[ball_start:].shape, low=-0.01, high=0.15
+            size=qpos[ball_start:].shape, low=-0.01, high=0.08
         )
         # Optionally, you can randomize the ball's velocities as well:
         qvel[ball_start:] = self.np_random.uniform(
@@ -182,7 +206,14 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
     def _compute_reward(self):
         distance = self._compute_distance()
 
-        goal_reward = 10.0 if self._is_done() else 0.0
+        end_goal_reward = 10.0 if self._goal_reached("end_goal") else 0.0
+
+        intermediate_goal_reward = 0.0
+
+        for i in range(1, self.intermediate_goals + 1):
+            if self._goal_reached(f"intermediate_goal_{i}"):
+                setattr(self, f"intermediate_goal_{i}_reached", True)
+                intermediate_goal_reward = 2.0
 
         if self.prev_distance is None:
             self.prev_distance = distance
@@ -190,26 +221,29 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         distance_reward = self.prev_distance - distance
         self.prev_distance = distance
 
-        time_penalty = -0.001
+        time_penalty = -0.002
 
-        return goal_reward + distance_reward + time_penalty
+        return end_goal_reward + distance_reward + intermediate_goal_reward + time_penalty
 
     def _compute_distance(self):
         ball_pos = self.data.body("ball").xpos[:2]
-        return np.linalg.norm(ball_pos - self.goal_pos)
+        return np.linalg.norm(ball_pos - self.end_goal_pos)
 
-    def _is_done(self) -> bool:
+    def _goal_reached(self, site) -> bool:
         ball_pos = self.data.body("ball").xpos[:2]
 
-        site_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "sensor_plate_site")
-        sensor_plate_pos = self.model.site_pos[site_id, :2]
-        sensor_plate_size = self.model.site_size[site_id, :2]  # Half extents
+        sensor_plate_pos = getattr(self, f"{site}_pos")
+        sensor_plate_size = getattr(self, f"{site}_size")
 
         # Compute the bounding box of the sensor plate
         x_min = sensor_plate_pos[0] - sensor_plate_size[0]
         x_max = sensor_plate_pos[0] + sensor_plate_size[0]
         y_min = sensor_plate_pos[1] - sensor_plate_size[1]
         y_max = sensor_plate_pos[1] + sensor_plate_size[1]
+
+        if site != "end_goal":
+            if getattr(self, f"{site}_reached"):
+                return False
 
         # Check if ball is within the bounds
         return (x_min <= ball_pos[0] <= x_max) and (y_min <= ball_pos[1] <= y_max)

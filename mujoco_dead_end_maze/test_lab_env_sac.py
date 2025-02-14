@@ -14,14 +14,15 @@ logging.basicConfig(level=logging.INFO)
 
 
 def main():
-    eval_env = LabyrinthEnv(episode_length=5000, render_mode='rgb_array')
+    eval_env = LabyrinthEnv(episode_length=6000, render_mode='rgb_array')
     eval_env = Monitor(eval_env)
 
-    vec_env = make_vec_env(LabyrinthEnv, n_envs=6, env_kwargs={"episode_length": 5000, "render_mode": "rgb_array"})
+    vec_env = make_vec_env(LabyrinthEnv, n_envs=6, env_kwargs={"episode_length": 6000, "render_mode": "rgb_array"})
 
     model = SAC("MultiInputPolicy", vec_env, verbose=1, tensorboard_log="./output/sac_labyrinth_tensorboard")
     tensor_callback = TensorboardCallback(eval_env, render_freq=5000, log_interval=20)
-    checkpoint_callback = CheckpointCallback(save_freq=10000, save_path="./output/checkpoints")
+    checkpoint_callback = CheckpointCallback(save_freq=10000, save_path="./output/checkpoints",
+                                             name_prefix="sac_labyrinth")
     model.learn(total_timesteps=1000000, log_interval=20, callback=[tensor_callback, checkpoint_callback])
     model.save("./output/sac_labyrinth")
 
