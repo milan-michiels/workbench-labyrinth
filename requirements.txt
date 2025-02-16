@@ -10,4 +10,7 @@ torch
 moviepy==1.0.3
 pyopengl
 glfw
-watchdog
+jax[cuda12]
+ray[rllib]
+tensorflow-probability[tf]
+tf-keras

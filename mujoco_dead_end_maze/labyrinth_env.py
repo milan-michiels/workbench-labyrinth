@@ -48,7 +48,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
     def _get_obs(self):
         return {
             "image": self._get_image(),
-            "states": self.data.body("ball").xpos[:2],
+            "states": self.data.body("ball").xpos[:2].astype(np.float32),
             "progress": np.array([self._compute_distance()], dtype=np.float32),
             "goal": np.array(self._get_goal_coordinates(), dtype=np.float32)
         }
