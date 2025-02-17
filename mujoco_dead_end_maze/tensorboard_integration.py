@@ -25,7 +25,8 @@ class TensorboardCallback(BaseCallback):
 
     def _on_step(self) -> bool:
         env = self.training_env
-        distance = env.env_method("_compute_distance")
+        distance = env.env_method("_compute_distances")
+        distance = distance[0][0]
         ep_distance_mean = np.mean(distance)
         self.logger.record('trajectory/avg_distance', ep_distance_mean)
 

@@ -1,31 +1,32 @@
 import logging
 import os
 
-import numpy as np
-from gymnasium import spaces
 from gymnasium.wrappers import RecordVideo
 from ray import tune
 from ray.rllib.algorithms.dreamerv3 import DreamerV3Config
 
-from labyrinth_env import LabyrinthEnv
+from labyrinth_env_ray import LabyrinthRayEnv
 
 os.environ["PYTHONWARNINGS"] = "ignore::DeprecationWarning"
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-tune.register_env("LabyrinthEnv", lambda config: LabyrinthEnv(**config))
 
-obs = spaces.Dict(
-    image=spaces.Box(low=0, high=255, shape=(64, 64, 3), dtype=np.uint8),
-    states=spaces.Box(low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32),
-    goal=spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float32),
-    progress=spaces.Box(low=0, high=np.inf, shape=(1,), dtype=np.float32)
-)
+def env_creator(env_config):
+    return LabyrinthRayEnv(env_config)
+
+
+tune.register_env("LabyrinthEnv", env_creator)
 
 config = (
     DreamerV3Config()
-    .environment("LabyrinthEnv", env_config={"episode_length": 6000, "render_mode": "rgb_array"}, observation_space=obs)
+    .api_stack(
+        enable_rl_module_and_learner=True,
+        enable_env_runner_and_connector_v2=False
+    )
+    .framework("tf2")
+    .environment("LabyrinthEnv", env_config={"episode_length": 6000, "render_mode": "rgb_array"})
     .env_runners(num_env_runners=2, num_envs_per_env_runner=2)
 )
 
@@ -40,7 +41,7 @@ for i in range(1_000_00):
 
 dreamer.save_to_path("./output/dreamer_labyrinth")
 
-eval_env = LabyrinthEnv(episode_length=6000, render_mode='rgb_array')
+eval_env = LabyrinthRayEnv(episode_length=6000, render_mode='rgb_array')
 eval_env = RecordVideo(eval_env, video_folder="./output/vids", name_prefix="eval",
                        episode_trigger=lambda x: x % 10 == 0)
 
