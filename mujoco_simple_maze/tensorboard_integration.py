@@ -24,6 +24,11 @@ class TensorboardCallback(BaseCallback):
         self._log_interval = log_interval
 
     def _on_step(self) -> bool:
+        """
+       This method will be called by the model after each call to `env.step()`.
+       This will add the average distance to the goal to the tensorboard log.
+       It will also add a video of the evaluation environment to the tensorboard log every `render_freq` calls.
+        """
         env = self.training_env
         distance = env.env_method("_compute_distance")
         ep_distance_mean = np.mean(distance)

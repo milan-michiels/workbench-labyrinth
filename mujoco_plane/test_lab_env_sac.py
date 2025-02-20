@@ -8,17 +8,15 @@ from tensorboard_integration import TensorboardCallback
 
 
 def main():
-    # env = LabyrinthEnv(episode_length=1000, render_mode='rgb_array')
-
     eval_env = LabyrinthEnv(episode_length=1500, render_mode='rgb_array')
     eval_env = Monitor(eval_env)
 
-    # vec_env = make_vec_env(LabyrinthEnv, n_envs=4, env_kwargs={"episode_length": 1000, "render_mode": "rgb_array"})
-    #
-    # model = SAC("MultiInputPolicy", vec_env, verbose=1, tensorboard_log="./output/sac_labyrinth_tensorboard")
-    # tensor_callback = TensorboardCallback(eval_env, render_freq=5000)
-    # model.learn(total_timesteps=400000, log_interval=20, callback=tensor_callback)
-    # model.save("./output/sac_labyrinth")
+    vec_env = make_vec_env(LabyrinthEnv, n_envs=4, env_kwargs={"episode_length": 1000, "render_mode": "rgb_array"})
+
+    model = SAC("MultiInputPolicy", vec_env, verbose=1, tensorboard_log="./output/sac_labyrinth_tensorboard")
+    tensor_callback = TensorboardCallback(eval_env, render_freq=5000)
+    model.learn(total_timesteps=400000, log_interval=20, callback=tensor_callback)
+    model.save("./output/sac_labyrinth")
 
     eval_env = RecordVideo(eval_env, video_folder="./output/vids", name_prefix="eval",
                            episode_trigger=lambda x: x % 10 == 0)

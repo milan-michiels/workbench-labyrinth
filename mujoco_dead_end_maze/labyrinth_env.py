@@ -105,6 +105,9 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         return obs
 
     def world_to_pixel(self, world_pos, img_width, img_height, camera_name="top_view"):
+        """
+        Convert a 3D point in world coordinates to pixel coordinates in the image.
+        """
         # Get the camera id
         cam_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, camera_name)
         if cam_id == -1:

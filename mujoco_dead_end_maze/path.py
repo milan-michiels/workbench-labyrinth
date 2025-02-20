@@ -22,13 +22,13 @@ path_coords = [
 ]
 
 
-# Functie om de afstand tussen twee punten te berekenen
 def distance(p1, p2):
+    """ Calculate the Euclidean distance between two points. """
     return np.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
 
 
-# Functie om het dichtstbijzijnde punt op een lijnsegment te vinden
 def closest_point_on_segment(px, py, x1, y1, x2, y2):
+    """ Find the closest point on a line segment to the given point. """
     # Bereken de vector van het lijnsegment
     segment_vector = np.array([x2 - x1, y2 - y1])
     point_vector = np.array([px - x1, py - y1])
@@ -46,12 +46,12 @@ def closest_point_on_segment(px, py, x1, y1, x2, y2):
 
 
 def find_closest_path_index(point):
-    """ Zoek het dichtstbijzijnde indexpunt in het path_coords lijst. """
+    """ Find the nearest index point in the path_coords list. """
     return min(range(len(path_coords)), key=lambda i: distance(path_coords[i], point))
 
 
-# Functie om het dichtstbijzijnde punt langs het pad te vinden
 def closest_point_on_path(px, py, last_known_point, search_range=3):
+    """ Find the closest point on the path to the given point. """
     closest_dist = float('inf')
     closest_point = None
 
@@ -74,6 +74,7 @@ def closest_point_on_path(px, py, last_known_point, search_range=3):
 
 
 def distance_along_path(start_point):
+    """ Calculate the distance along the path from the given point to the goal. """
     start_index = find_closest_path_index(start_point)
 
     # Bereken de afstand vanaf het startpunt tot het volgende knooppunt

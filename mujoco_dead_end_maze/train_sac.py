@@ -15,10 +15,10 @@ logging.basicConfig(level=logging.INFO)
 
 
 def main():
-    eval_env = LabyrinthEnv(episode_length=7000, render_mode='rgb_array')
+    eval_env = LabyrinthEnv(episode_length=4000, render_mode='rgb_array')
     eval_env = Monitor(eval_env)
 
-    vec_env = make_vec_env(LabyrinthEnv, n_envs=6, env_kwargs={"episode_length": 7000, "render_mode": "rgb_array"})
+    vec_env = make_vec_env(LabyrinthEnv, n_envs=6, env_kwargs={"episode_length": 4000, "render_mode": "rgb_array"})
     model = SAC("MultiInputPolicy", vec_env, verbose=1, tensorboard_log="./output/sac_labyrinth_tensorboard",
                 device="cuda")
     tensor_callback = TensorboardCallback(eval_env, render_freq=5000, log_interval=20)

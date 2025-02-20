@@ -9,6 +9,10 @@ from numpy._typing import NDArray
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
+    """
+    A simple maze environment where the goal is to move a ball to a target location.
+    There are two walls that the ball must navigate around to reach the target.
+    """
     metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 100}
 
     def __init__(self, episode_length=500, resolution=(64, 64), **kwargs):
@@ -73,6 +77,9 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         return obs
 
     def world_to_pixel(self, world_pos, img_width, img_height, camera_name="top_view"):
+        """
+        Convert a 3D point in world coordinates to pixel coordinates in the image.
+        """
         # Get the camera id
         cam_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, camera_name)
         if cam_id == -1:
