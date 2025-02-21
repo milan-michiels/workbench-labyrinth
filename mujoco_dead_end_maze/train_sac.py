@@ -1,6 +1,5 @@
 import logging
 
-import cv2
 from gymnasium.wrappers import RecordVideo
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import CheckpointCallback
@@ -15,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 def main():
-    eval_env = LabyrinthEnv(episode_length=4000, render_mode='rgb_array')
+    eval_env = LabyrinthEnv(episode_length=4000, render_mode='rgb_array', evaluation=True)
     eval_env = Monitor(eval_env)
 
     vec_env = make_vec_env(LabyrinthEnv, n_envs=6, env_kwargs={"episode_length": 4000, "render_mode": "rgb_array"})
@@ -28,10 +27,10 @@ def main():
     model.save("./output/sac_labyrinth")
 
     eval_env = RecordVideo(eval_env, video_folder="./output/vids", name_prefix="eval-sac",
-                           episode_trigger=lambda x: x % 10 == 0)
+                           episode_trigger=lambda x: x % 5 == 0)
 
     model = SAC.load("./output/sac_labyrinth")
-    n_episodes = 100
+    n_episodes = 10
     succes = 0
     for episode_num in range(n_episodes):
         obs, info = eval_env.reset()

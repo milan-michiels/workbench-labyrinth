@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 def main():
-    eval_env = LabyrinthEnv(episode_length=4000, render_mode='rgb_array')
+    eval_env = LabyrinthEnv(episode_length=4000, render_mode='rgb_array', evaluation=True)
     eval_env = Monitor(eval_env)
 
     vec_env = make_vec_env(LabyrinthEnv, n_envs=6, env_kwargs={"episode_length": 4000, "render_mode": "rgb_array"})

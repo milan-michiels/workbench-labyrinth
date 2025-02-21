@@ -45,12 +45,19 @@ def closest_point_on_segment(px, py, x1, y1, x2, y2):
     return closest_point[0], closest_point[1]
 
 
+def get_next_targets(last_known_point, num_next_points):
+    """ Get the next num_next_points targets along the path. """
+    last_index = find_closest_path_index(last_known_point)
+    next_targets = path_coords[last_index + 1:last_index + 1 + num_next_points]
+    return next_targets
+
+
 def find_closest_path_index(point):
     """ Find the nearest index point in the path_coords list. """
     return min(range(len(path_coords)), key=lambda i: distance(path_coords[i], point))
 
 
-def closest_point_on_path(px, py, last_known_point, search_range=3):
+def closest_point_on_path(px, py, last_known_point, search_range=1):
     """ Find the closest point on the path to the given point. """
     closest_dist = float('inf')
     closest_point = None
@@ -89,39 +96,3 @@ def distance_along_path(start_point):
     return segment_dist + remaining_distance
 
 # Geoms in mujoco
-# <geom name="path1" type="box" size="0.02 0.002 0.04" pos="-0.4 -0.4 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path2" type="box" size="0.02 0.002 0.04" pos="-0.4 -0.29 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path3" type="box" size="0.02 0.002 0.04" pos="-0.05 -0.29 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path4" type="box" size="0.02 0.002 0.04" pos="-0.05 -0.43 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path5" type="box" size="0.02 0.002 0.04" pos="0.42 -0.43 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path6" type="box" size="0.02 0.002 0.04" pos="0.42 -0.10 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path7" type="box" size="0.02 0.002 0.04" pos="0.20 -0.10 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path8" type="box" size="0.02 0.002 0.04" pos="0.20 0.07 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path9" type="box" size="0.02 0.002 0.04" pos="-0.17 0.07 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path10" type="box" size="0.02 0.002 0.04" pos="-0.17 0.27 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path11" type="box" size="0.02 0.002 0.04" pos="-0.31 0.27 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path12" type="box" size="0.02 0.002 0.04" pos="-0.31 -0.12 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path13" type="box" size="0.02 0.002 0.04" pos="-0.43 -0.12 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path14" type="box" size="0.02 0.002 0.04" pos="-0.43 0.42 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path15" type="box" size="0.02 0.002 0.04" pos="0.18 0.42 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path16" type="box" size="0.02 0.002 0.04" pos="0.18 0.20 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path17" type="box" size="0.02 0.002 0.04" pos="0.43 0.20 0.05" rgba="255 255 255 1"
-#       mass="0"/>
-# <geom name="path18" type="box" size="0.02 0.002 0.04" pos="0.40 0.40 0.05" rgba="255 255 255 1"
-#       mass="0"/>

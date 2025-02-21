@@ -7,13 +7,15 @@ from gymnasium import utils, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
 
-from path import closest_point_on_path, distance_along_path
+from path import closest_point_on_path, distance_along_path, path_coords, find_closest_path_index, get_next_targets
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
     metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 100}
 
-    def __init__(self, episode_length=500, resolution=(64, 64), intermediate_goals=5, **kwargs):
+    def __init__(self, episode_length=500, resolution=(64, 64), intermediate_goals=5, evaluation=False, padding=120,
+                 target_points=5,
+                 **kwargs):
         utils.EzPickle.__init__(self, resolution, episode_length, **kwargs)
 
         self.episode_length = episode_length
@@ -21,15 +23,18 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.observation_space = spaces.Dict(
             image=spaces.Box(low=0, high=255, shape=(resolution[0], resolution[1], 3), dtype=np.uint8),
             states=spaces.Box(low=-np.inf, high=np.inf, shape=(4,), dtype=np.float32),
-            goal=spaces.Box(low=-np.inf, high=np.inf, shape=(12,), dtype=np.float32),
+            targets=spaces.Box(low=-np.inf, high=np.inf, shape=(target_points*2,), dtype=np.float32),
             progress=spaces.Box(low=0, high=np.inf, shape=(2,), dtype=np.float32)
         )
 
         self.step_number = 0
+        self.evaluation = evaluation
+        self.padding = padding
 
         self.prev_distance = None
         self.succes = 0
         self.intermediate_goals = intermediate_goals
+        self.target_points = target_points
 
         MujocoEnv.__init__(self, observation_space=self.observation_space,
                            model_path="./resources/labyrinth_wo_meshes_actuators.xml", camera_name="top_view",
@@ -38,7 +43,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         end_goal_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "end_goal")  # Get site ID
         self.end_goal_pos = self.model.site_pos[end_goal_id, :2]  # Extract (x, y) position
         self.end_goal_size = self.model.site_size[end_goal_id, :2]  # Half extents
-        self.last_pos_path = (-0.4, -0.4)
+        self.last_pos_path = None
         self.last_action = None
         self.last_reward = None
         self.tot_reward = 0
@@ -56,18 +61,22 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
             "image": self._get_image(),
             "states": self._get_state(),
             "progress": np.array([self._compute_distances()], dtype=np.float32),
-            "goal": np.array(self._get_goal_coordinates(), dtype=np.float32)
+            "targets": np.array(self._get_target_vectors(), dtype=np.float32)
         }
 
-    def _get_goal_coordinates(self):
-        goal_coordinates = []
+    def _get_target_vectors(self):
+        goal_vectors = []
 
-        for i in range(1, self.intermediate_goals + 1):
-            goal_coordinates.append(getattr(self, f"intermediate_goal_{i}_pos"))
+        next_targets_coords = get_next_targets(self.last_pos_path, self.target_points)
 
-        goal_coordinates.append(self.end_goal_pos)
+        ball_coords = np.array(self.data.body("ball").xpos[:2])
 
-        return np.concatenate(goal_coordinates, axis=0)
+        for target in next_targets_coords:
+            target = np.array(target)
+            target_vector = target - ball_coords
+            goal_vectors.append(target_vector)
+
+        return np.concatenate(goal_vectors, axis=0)
 
     def _get_state(self):
         ball_x_y = self.data.body("ball").xpos[:2].astype(np.float32)
@@ -78,8 +87,10 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
     def _get_image(self):
         img = self.render()  # Get full RGB image (H, W, 3)
         img = np.ascontiguousarray(img)
-
         img_rgb = img.copy()
+
+        if self.evaluation:
+            img_rgb = img_rgb[self.padding:, :, :]
 
         # (x, y) position of the ball in world coordinates (meters)
         ball_pos = self.data.geom("ball_geom").xpos[:2]
@@ -89,13 +100,22 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         ball_x_px, ball_y_px = self.world_to_pixel(ball_pos, img_width, img_height)
 
-        crop_half = 100
+        crop_half = 80
 
-        # Calculate crop boundaries with padding
+        # Adjusted cropping: Shift when near edges
         x1 = max(0, ball_x_px - crop_half)
+        x2 = x1 + crop_half * 2
+        if x2 > img_width:  # If it exceeds the right edge, shift left
+            x2 = img_width
+            x1 = max(0, x2 - crop_half * 2)
+
         y1 = max(0, ball_y_px - crop_half)
-        x2 = min(img_width, ball_x_px + crop_half)
-        y2 = min(img_height, ball_y_px + crop_half)
+        y2 = y1 + crop_half * 2
+        if y2 > img_height:  # If it exceeds the bottom edge, shift up
+            y2 = img_height
+            y1 = max(0, y2 - crop_half * 2)
+
+        img_rgb = self.draw_path_from_point(self.last_pos_path, img_rgb)
 
         # Crop and resize
         cropped_img = img_rgb[y1:y2, x1:x2]
@@ -103,6 +123,28 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         obs = cv2.resize(cropped_img, self.resolution, interpolation=cv2.INTER_LINEAR)
 
         return obs
+
+    def draw_path_from_point(self, point_on_path, frame, num_segments=3):
+        """ Draw path from the given point onwards for a limited number of segments. """
+        img_height, img_width, _ = frame.shape
+        closest_index = find_closest_path_index(point_on_path)
+
+        for i in range(closest_index, min(closest_index + num_segments, len(path_coords) - 1)):
+            end_world = path_coords[i + 1]
+            end_px = self.world_to_pixel(end_world, img_width, img_height)
+
+            # First segment should be drawn only from point_on_path onwards
+            if i == closest_index:
+                start_world = point_on_path  # Start at point_on_path, not full segment
+            else:
+                start_world = path_coords[i]
+
+            start_px = self.world_to_pixel(start_world, img_width, img_height)
+
+            # Draw the segment
+            cv2.line(frame, tuple(start_px), tuple(end_px), (0, 255, 0), 2)
+
+        return frame
 
     def world_to_pixel(self, world_pos, img_width, img_height, camera_name="top_view"):
         """
@@ -169,22 +211,26 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
     def render(self):
         frame = super().render()
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        if self.evaluation:
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
-        h, w, _ = frame.shape
-        padding = 100
-        new_frame = np.zeros((h + padding, w, 3), dtype=np.uint8)
+            h, w, _ = frame.shape
+            padding = self.padding
+            new_frame = np.zeros((h + padding, w, 3), dtype=np.uint8)
 
-        new_frame[padding:, :] = frame
-        if self.last_action is not None and self.last_reward is not None:
-            cv2.putText(new_frame, f"Action: {self.last_action}", (10, 30),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-            cv2.putText(new_frame, f"Reward: {self.last_reward:.2f}", (10, 60),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-            cv2.putText(new_frame, f"Total Reward: {self.tot_reward:.2f}", (10, 90),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-
-        return cv2.cvtColor(new_frame, cv2.COLOR_BGR2RGB)
+            new_frame[padding:, :] = frame
+            if self.last_action is not None and self.last_reward is not None:
+                tot_distance, closest_dist_to_path = self._compute_distances()
+                cv2.putText(new_frame, f"Action: {self.last_action}", (10, 30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+                cv2.putText(new_frame, f"Total Reward: {self.tot_reward:.2f}", (10, 60),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+                cv2.putText(new_frame, f"DTP: {closest_dist_to_path:.4f}", (10, 90),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+                cv2.putText(new_frame, f"Distance: {tot_distance:.4f}", (10, 120),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+            frame = cv2.cvtColor(new_frame, cv2.COLOR_BGR2RGB)
+        return frame
 
     def step(
             self, action: NDArray[np.float32]
@@ -213,6 +259,8 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.step_number = 0
         self.prev_distance = None
         self.tot_reward = 0
+        ball_pos = self.data.body("ball").xpos[:2]
+        self.last_pos_path = closest_point_on_path(ball_pos[0], ball_pos[1], path_coords[0])[0]
 
         # Copy the initial state so we don't modify the original
         qpos = self.init_qpos.copy()
@@ -246,26 +294,31 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
     def _compute_reward(self):
         distance_to_goal, closest_dist_to_path = self._compute_distances()
 
-        end_goal_reward = 10.0 if self._goal_reached("end_goal") else 0.0
+        end_goal_reward = 5.0 if self._goal_reached("end_goal") else 0.0
 
         intermediate_goal_reward = 0.0
 
         for i in range(1, self.intermediate_goals + 1):
             if self._goal_reached(f"intermediate_goal_{i}"):
                 setattr(self, f"intermediate_goal_{i}_reached", True)
-                intermediate_goal_reward = 2.0
+                intermediate_goal_reward = 1.0
 
         if self.prev_distance is None:
             self.prev_distance = distance_to_goal
 
         distance_reward = self.prev_distance - distance_to_goal
+
         self.prev_distance = distance_to_goal
+
+        if closest_dist_to_path > 0.15:
+            distance_reward -= closest_dist_to_path * 0.02
 
         return end_goal_reward + distance_reward + intermediate_goal_reward
 
     def _compute_distances(self):
         ball_pos = self.data.body("ball").xpos[:2]
         closest_point, closest_dist_to_path = closest_point_on_path(ball_pos[0], ball_pos[1], self.last_pos_path)
+        self.last_pos_path = closest_point
         distance_to_goal = distance_along_path(closest_point)
         return distance_to_goal, closest_dist_to_path
 
