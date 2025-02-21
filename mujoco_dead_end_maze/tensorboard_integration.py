@@ -30,9 +30,9 @@ class TensorboardCallback(BaseCallback):
        It will also add a video of the evaluation environment to the tensorboard log every `render_freq` calls.
        """
         env = self.training_env
-        distance = env.env_method("_compute_distances")
-        distance = distance[0][0]
-        ep_distance_mean = np.mean(distance)
+        distances = env.env_method("_compute_distances")
+        distances = [d[0] for d in distances]
+        ep_distance_mean = np.mean(distances)
         self.logger.record('trajectory/avg_distance', ep_distance_mean)
 
         successes = env.get_attr("succes")[0]
