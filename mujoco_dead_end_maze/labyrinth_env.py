@@ -6,12 +6,11 @@ import numpy as np
 from gymnasium import utils, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
-
 from path import closest_point_on_path, distance_along_path, path_coords, find_closest_path_index, get_next_targets
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
-    metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 100}
+    metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 28}
 
     def __init__(self, episode_length=500, resolution=(64, 64), intermediate_goals=5, evaluation=False, padding=120,
                  target_points=5,
@@ -23,7 +22,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.observation_space = spaces.Dict(
             image=spaces.Box(low=0, high=255, shape=(resolution[0], resolution[1], 3), dtype=np.uint8),
             states=spaces.Box(low=-np.inf, high=np.inf, shape=(4,), dtype=np.float32),
-            targets=spaces.Box(low=-np.inf, high=np.inf, shape=(target_points*2,), dtype=np.float32),
+            targets=spaces.Box(low=-np.inf, high=np.inf, shape=(target_points * 2,), dtype=np.float32),
             progress=spaces.Box(low=0, high=np.inf, shape=(2,), dtype=np.float32)
         )
 
@@ -38,7 +37,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         MujocoEnv.__init__(self, observation_space=self.observation_space,
                            model_path="./resources/labyrinth_wo_meshes_actuators.xml", camera_name="top_view",
-                           frame_skip=5, **kwargs)
+                           frame_skip=2, **kwargs)
 
         end_goal_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "end_goal")  # Get site ID
         self.end_goal_pos = self.model.site_pos[end_goal_id, :2]  # Extract (x, y) position
@@ -60,7 +59,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         return {
             "image": self._get_image(),
             "states": self._get_state(),
-            "progress": np.array([self._compute_distances()], dtype=np.float32),
+            "progress": np.array(self._compute_distances(), dtype=np.float32),
             "targets": np.array(self._get_target_vectors(), dtype=np.float32)
         }
 
@@ -80,8 +79,8 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
     def _get_state(self):
         ball_x_y = self.data.body("ball").xpos[:2].astype(np.float32)
-        tilt_x_angle = np.rad2deg(self.data.joint("tilt_x").qpos[0])
-        tilt_y_angle = np.rad2deg(self.data.joint("tilt_y").qpos[0])
+        tilt_x_angle = self.data.joint("tilt_x").qfrc_actuator[0]
+        tilt_y_angle = self.data.joint("tilt_y").qfrc_actuator[0]
         return np.concatenate([ball_x_y, [tilt_x_angle, tilt_y_angle]]).astype(np.float32)
 
     def _get_image(self):
@@ -124,7 +123,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         return obs
 
-    def draw_path_from_point(self, point_on_path, frame, num_segments=3):
+    def draw_path_from_point(self, point_on_path, frame, num_segments=18):
         """ Draw path from the given point onwards for a limited number of segments. """
         img_height, img_width, _ = frame.shape
         closest_index = find_closest_path_index(point_on_path)
@@ -259,8 +258,6 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.step_number = 0
         self.prev_distance = None
         self.tot_reward = 0
-        ball_pos = self.data.body("ball").xpos[:2]
-        self.last_pos_path = closest_point_on_path(ball_pos[0], ball_pos[1], path_coords[0])[0]
 
         # Copy the initial state so we don't modify the original
         qpos = self.init_qpos.copy()
@@ -280,6 +277,9 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         # Set the new state; the board remains at its initial state
         self.set_state(qpos, qvel)
 
+        ball_pos = self.data.body("ball").xpos[:2]
+        self.last_pos_path = closest_point_on_path(ball_pos[0], ball_pos[1], path_coords[0])[0]
+
         return self._get_obs()
 
     def reset(
@@ -289,7 +289,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
             options: Optional[dict] = None,
     ):
         super().reset(seed=seed, options=options)
-        return self.reset_model(), {}
+        return self._get_obs(), {}
 
     def _compute_reward(self):
         distance_to_goal, closest_dist_to_path = self._compute_distances()

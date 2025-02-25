@@ -1,20 +1,21 @@
 import logging
 
 from gymnasium.wrappers import RecordVideo
+from labyrinth_env import LabyrinthEnv
 from stable_baselines3 import SAC
 from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.monitor import Monitor
-
-from labyrinth_env import LabyrinthEnv
 from tensorboard_integration import TensorboardCallback
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
+# TODO Ervoor zorgen dat actie x in de buurt is van vorige actie
 def main():
     eval_env = LabyrinthEnv(episode_length=4000, render_mode='rgb_array', evaluation=True)
+
     eval_env = Monitor(eval_env)
 
     vec_env = make_vec_env(LabyrinthEnv, n_envs=6, env_kwargs={"episode_length": 4000, "render_mode": "rgb_array"})
@@ -27,10 +28,10 @@ def main():
     model.save("./output/sac_labyrinth")
 
     eval_env = RecordVideo(eval_env, video_folder="./output/vids", name_prefix="eval-sac",
-                           episode_trigger=lambda x: x % 5 == 0)
+                           episode_trigger=lambda x: x % 10 == 0)
 
     model = SAC.load("./output/sac_labyrinth")
-    n_episodes = 10
+    n_episodes = 100
     succes = 0
     for episode_num in range(n_episodes):
         obs, info = eval_env.reset()

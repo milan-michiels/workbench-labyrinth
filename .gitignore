@@ -241,3 +241,5 @@ $RECYCLE.BIN/
 **/vids/
 /bare_gym/vids/
 **/output/
+/sheeprl_lab/sheeprl.egg-info/
+/sheeprl_lab/logs/
