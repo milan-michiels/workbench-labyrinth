@@ -123,7 +123,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         return obs
 
-    def draw_path_from_point(self, point_on_path, frame, num_segments=18):
+    def draw_path_from_point(self, point_on_path, frame, num_segments=3):
         """ Draw path from the given point onwards for a limited number of segments. """
         img_height, img_width, _ = frame.shape
         closest_index = find_closest_path_index(point_on_path)
