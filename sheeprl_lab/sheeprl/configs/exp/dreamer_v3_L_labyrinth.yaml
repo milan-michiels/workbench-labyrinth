@@ -1,0 +1,49 @@
+# @package _global_
+
+defaults:
+  - dreamer_v3
+  - override /algo: dreamer_v3_L
+  - override /env: labyrinth
+  - _self_
+
+# Experiment
+seed: 5
+
+# Environment
+env:
+  num_envs: 6
+  id: Labyrinth3D-v0
+
+# Checkpoint
+checkpoint:
+  every: 10000
+
+# Buffer
+buffer:
+  checkpoint: True
+
+# Algorithm
+algo:
+  total_steps: 1200000
+  cnn_keys:
+    encoder:
+      - image
+    decoder:
+      - image
+  mlp_keys:
+    encoder:
+      - states
+      - targets
+      - progress
+    decoder:
+      - states
+      - targets
+      - progress
+
+# Metric
+metric:
+  log_every: 10000
+
+fabric:
+  accelerator: cuda
+  precision: bf16-mixed
