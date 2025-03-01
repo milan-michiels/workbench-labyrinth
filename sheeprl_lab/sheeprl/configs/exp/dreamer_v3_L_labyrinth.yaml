@@ -11,7 +11,7 @@ seed: 5
 
 # Environment
 env:
-  num_envs: 6
+  num_envs: 2
   id: Labyrinth3D-v0
 
 # Checkpoint
@@ -24,7 +24,7 @@ buffer:
 
 # Algorithm
 algo:
-  total_steps: 1200000
+  total_steps: 75000
   cnn_keys:
     encoder:
       - image
