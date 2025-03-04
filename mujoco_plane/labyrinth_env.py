@@ -9,7 +9,7 @@ from numpy._typing import NDArray
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
-    metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 100}
+    metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 55}
 
     def __init__(self, episode_length=500, resolution=(64, 64), **kwargs):
         utils.EzPickle.__init__(self, resolution, episode_length, **kwargs)
@@ -29,7 +29,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         MujocoEnv.__init__(self, observation_space=self.observation_space,
                            model_path="./resources/labyrinth_wo_meshes_actuators.xml", camera_name="top_view",
-                           frame_skip=5, **kwargs)
+                           frame_skip=1, **kwargs)
 
         site_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "sensor_plate_site")  # Get site ID
         self.goal_pos = self.model.site_pos[site_id, :2]  # Extract (x, y) position

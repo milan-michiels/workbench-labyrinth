@@ -10,7 +10,7 @@ from path import closest_point_on_path, distance_along_path, path_coords, find_c
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
-    metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 28}
+    metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 55}
 
     def __init__(self, episode_length=500, resolution=(64, 64), intermediate_goals=5, evaluation=False, padding=120,
                  target_points=5,
@@ -37,7 +37,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         MujocoEnv.__init__(self, observation_space=self.observation_space,
                            model_path="./resources/labyrinth_wo_meshes_actuators.xml", camera_name="top_view",
-                           frame_skip=2, **kwargs)
+                           frame_skip=1, **kwargs)
 
         end_goal_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "end_goal")  # Get site ID
         self.end_goal_pos = self.model.site_pos[end_goal_id, :2]  # Extract (x, y) position

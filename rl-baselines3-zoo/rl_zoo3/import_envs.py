@@ -1,8 +1,7 @@
 from typing import Callable, Optional
 
 import gymnasium as gym
-from envs.labyrinth import LabyrinthEnv
-from gymnasium.envs.registration import register, register_envs
+from gymnasium.envs.registration import register
 from rl_zoo3.wrappers import MaskVelocityWrapper
 
 try:
@@ -79,5 +78,6 @@ register(
 
 register(
     id="Labyrinth-v0-eval",
-    entry_point=LabyrinthEnv(episode_length=2500, render_mode="rgb_array", evaluation=True)
+    entry_point="envs.labyrinth:LabyrinthEnv",
+    kwargs={"episode_length": 2500, "render_mode": "rgb_array", "evaluation": True},
 )

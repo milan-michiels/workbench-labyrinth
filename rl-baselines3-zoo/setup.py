@@ -24,6 +24,10 @@ install_requires = [
     "pyyaml>=5.1",
     "pytablewriter~=1.2",
     "shimmy~=2.0",
+    "moviepy>=1.0.0",
+    "opencv-python",
+    "mujoco>=2.3,<4",
+    "numpy"
 ]
 plots_requires = ["seaborn", "rliable~=1.2.0", "scipy~=1.10"]
 test_requires = [

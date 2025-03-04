@@ -243,3 +243,4 @@ $RECYCLE.BIN/
 **/output/
 /sheeprl_lab/sheeprl.egg-info/
 /sheeprl_lab/logs/
+/sheeprl_lab/cloud_logs/

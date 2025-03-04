@@ -1,5 +1,6 @@
 <mujoco model="labyrinth">
-    <compiler inertiafromgeom="true"/>
+    <compiler angle="degree"/>
+    <option timestep="0.0181818"/>
 
     <!-- World -->
     <worldbody>
