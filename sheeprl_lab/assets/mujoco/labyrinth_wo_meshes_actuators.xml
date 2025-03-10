@@ -1,6 +1,6 @@
 <mujoco model="labyrinth">
     <compiler angle="degree"/>
-    <option timestep="0.0181818"/>
+    <option timestep="0.02"/>
 
     <!-- World -->
     <worldbody>

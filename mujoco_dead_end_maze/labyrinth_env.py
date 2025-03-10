@@ -10,7 +10,7 @@ from path import closest_point_on_path, distance_along_path, path_coords, find_c
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
-    metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 55}
+    metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 50}
 
     def __init__(self, episode_length=500, resolution=(64, 64), intermediate_goals=5, evaluation=False, padding=120,
                  target_points=5,

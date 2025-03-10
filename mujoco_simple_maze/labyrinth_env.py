@@ -13,7 +13,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
     A simple maze environment where the goal is to move a ball to a target location.
     There are two walls that the ball must navigate around to reach the target.
     """
-    metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 55}
+    metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 50}
 
     def __init__(self, episode_length=500, resolution=(64, 64), **kwargs):
         utils.EzPickle.__init__(self, resolution, episode_length, **kwargs)
