@@ -36,7 +36,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.target_points = target_points
 
         MujocoEnv.__init__(self, observation_space=self.observation_space,
-                           model_path="./envs/resources/labyrinth_wo_meshes_actuators.xml", camera_name="top_view",
+                           model_path="./envs/resources/labyrinth_no_visible_rewards.xml", camera_name="top_view",
                            frame_skip=1, **kwargs)
 
         end_goal_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "end_goal")  # Get site ID

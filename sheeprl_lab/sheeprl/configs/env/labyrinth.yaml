@@ -9,5 +9,5 @@ num_envs: 5
 wrapper:
   _target_: sheeprl.envs.labyrinth.LabyrinthEnv
   render_mode: rgb_array
-  episode_length: 1250
+  episode_length: 4000
 

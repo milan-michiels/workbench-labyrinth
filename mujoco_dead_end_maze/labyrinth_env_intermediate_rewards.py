@@ -1,4 +1,3 @@
-import time
 from typing import Optional
 
 import cv2
@@ -7,8 +6,7 @@ import numpy as np
 from gymnasium import utils, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
-from sheeprl.utils.lab_path import closest_point_on_path, distance_along_path, path_coords, find_closest_path_index, \
-    get_next_targets
+from path import closest_point_on_path, distance_along_path, path_coords, find_closest_path_index, get_next_targets
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
@@ -22,7 +20,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.episode_length = episode_length
         self.resolution = resolution
         self.observation_space = spaces.Dict(
-            image=spaces.Box(low=0, high=256, shape=(3, resolution[0], resolution[1]), dtype=np.uint8),
+            image=spaces.Box(low=0, high=255, shape=(resolution[0], resolution[1], 3), dtype=np.uint8),
             states=spaces.Box(low=-np.inf, high=np.inf, shape=(4,), dtype=np.float32),
             targets=spaces.Box(low=-np.inf, high=np.inf, shape=(target_points * 2,), dtype=np.float32),
             progress=spaces.Box(low=0, high=np.inf, shape=(2,), dtype=np.float32)
@@ -38,8 +36,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.target_points = target_points
 
         MujocoEnv.__init__(self, observation_space=self.observation_space,
-                           model_path="./assets/mujoco/labyrinth_wo_meshes_actuators.xml",
-                           camera_name="top_view",
+                           model_path="resources/labyrinth_no_visible_rewards.xml", camera_name="top_view",
                            frame_skip=1, **kwargs)
 
         end_goal_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "end_goal")  # Get site ID
@@ -251,9 +248,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         truncated = self.step_number >= self.episode_length
         if done:
             self.succes += 1
-        return (
-            obs, reward, done, truncated, {}
-        )
+        return obs, reward, done, truncated, {}
 
     def reset_model(self):
 
@@ -315,14 +310,10 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         self.prev_distance = distance_to_goal
 
-        time_penalty = 0.0
-        if self.data.time > 10:
-            time_penalty = self.data.time * 0.001
-
         if closest_dist_to_path > 0.15:
             distance_reward -= closest_dist_to_path * 0.02
 
-        return end_goal_reward + distance_reward + intermediate_goal_reward + time_penalty
+        return end_goal_reward + distance_reward + intermediate_goal_reward
 
     def _compute_distances(self):
         ball_pos = self.data.body("ball").xpos[:2]

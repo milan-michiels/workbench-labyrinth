@@ -6,7 +6,7 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.monitor import Monitor
 
-from labyrinth_env import LabyrinthEnv
+from labyrinth_env_intermediate_rewards import LabyrinthEnv
 from tensorboard_integration import TensorboardCallback
 
 logger = logging.getLogger(__name__)
