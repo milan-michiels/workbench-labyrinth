@@ -22,9 +22,9 @@ def main():
     model = SAC("MultiInputPolicy", vec_env, verbose=1, tensorboard_log="./output/sac_labyrinth_tensorboard",
                 device="cuda")
     tensor_callback = TensorboardCallback(eval_env, render_freq=5000, log_interval=20)
-    checkpoint_callback = CheckpointCallback(save_freq=10000, save_path="./output/checkpoints",
+    checkpoint_callback = CheckpointCallback(save_freq=1_000_000, save_path="./output/checkpoints",
                                              name_prefix="sac_labyrinth")
-    model.learn(total_timesteps=2000000, log_interval=20, callback=[tensor_callback, checkpoint_callback])
+    model.learn(total_timesteps=10_000_000, log_interval=10_000, callback=[tensor_callback, checkpoint_callback])
     model.save("./output/sac_labyrinth")
 
     eval_env = RecordVideo(eval_env, video_folder="./output/vids", name_prefix="eval-sac",
