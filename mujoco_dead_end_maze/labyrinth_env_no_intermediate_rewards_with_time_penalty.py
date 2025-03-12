@@ -1,4 +1,3 @@
-import time
 from typing import Optional
 
 import cv2
@@ -7,6 +6,7 @@ import numpy as np
 from gymnasium import utils, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
+
 from path import closest_point_on_path, distance_along_path, path_coords, find_closest_path_index, get_next_targets
 
 
@@ -14,7 +14,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
     metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 50}
 
     def __init__(self, episode_length=500, resolution=(64, 64), evaluation=False, padding=120,
-                 target_points=5,
+                 target_points=5, max_steps=100000,
                  **kwargs):
         utils.EzPickle.__init__(self, resolution, episode_length, **kwargs)
 
@@ -46,6 +46,9 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.last_action = None
         self.last_reward = None
         self.tot_reward = 0
+        self.initial_threshold = 180
+        self.final_threshold = 12
+        self.max_steps = max_steps
 
     def _get_obs(self):
         return {
@@ -292,13 +295,17 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.prev_distance = distance_to_goal
 
         time_penalty = 0.0
-        if self.data.time > 10:
+
+        time_threshold = self.initial_threshold - (self.initial_threshold - self.final_threshold) * (
+                1 / (1 + np.exp(-10 * ((self.step_number / self.max_steps) - 0.5))))
+
+        if self.data.time > time_threshold:
             time_penalty = self.data.time * 0.001
 
         if closest_dist_to_path > 0.15:
             distance_reward -= closest_dist_to_path * 0.02
 
-        return end_goal_reward + distance_reward + time_penalty
+        return end_goal_reward + distance_reward - time_penalty
 
     def _compute_distances(self):
         ball_pos = self.data.body("ball").xpos[:2]

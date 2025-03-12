@@ -1,4 +1,3 @@
-import time
 from typing import Optional
 
 import cv2
@@ -36,6 +35,12 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.succes = 0
         self.intermediate_goals = intermediate_goals
         self.target_points = target_points
+        self.end_steps = 700
+        self.decay_rate = 0.00005
+        # self.max_steps = max_steps
+        # self.initial_threshold = 40
+        # self.final_threshold = 8
+        # self.total_steps = 0
 
         MujocoEnv.__init__(self, observation_space=self.observation_space,
                            model_path="./assets/mujoco/labyrinth_wo_meshes_actuators.xml",
@@ -234,11 +239,15 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
             frame = cv2.cvtColor(new_frame, cv2.COLOR_BGR2RGB)
         return frame
 
+    def define_episode_length(self):
+        return self.end_steps + (self.episode_length - self.end_steps) * np.exp(-self.decay_rate * self.step_number)
+
     def step(
             self, action: NDArray[np.float32]
     ):
         self.do_simulation(action, self.frame_skip)
         self.step_number += 1
+        # self.total_steps += 1
         obs = self._get_obs()
         reward = self._compute_reward()
         self.tot_reward += reward
@@ -248,7 +257,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.last_reward = reward
 
         done = bool(self._goal_reached("end_goal"))
-        truncated = self.step_number >= self.episode_length
+        truncated = self.step_number >= self.define_episode_length()
         if done:
             self.succes += 1
         return (
@@ -315,14 +324,17 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         self.prev_distance = distance_to_goal
 
-        time_penalty = 0.0
-        if self.data.time > 10:
-            time_penalty = self.data.time * 0.001
+        # time_penalty = 0.0
+        # progress = min(self.total_steps / self.max_steps, 1.0)
+        # current_threshold = self.final_threshold + (self.initial_threshold - self.final_threshold) * (0.5 ** (self.decay_rate * progress))
+        #
+        # if self.data.time > current_threshold:
+        #     time_penalty = self.data.time * 0.001
 
         if closest_dist_to_path > 0.15:
             distance_reward -= closest_dist_to_path * 0.02
 
-        return end_goal_reward + distance_reward + intermediate_goal_reward + time_penalty
+        return end_goal_reward + distance_reward + intermediate_goal_reward
 
     def _compute_distances(self):
         ball_pos = self.data.body("ball").xpos[:2]
