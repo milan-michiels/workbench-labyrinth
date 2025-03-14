@@ -52,9 +52,22 @@ def get_next_targets(last_known_point, num_next_points):
     return next_targets
 
 
-def find_closest_path_index(point):
+def find_closest_path_index(point, closest=False):
     """ Find the nearest index point in the path_coords list. """
-    return min(range(len(path_coords)), key=lambda i: distance(path_coords[i], point))
+    if closest:
+        index = min(range(len(path_coords)), key=lambda i: distance(path_coords[i], point))
+    else:
+        index = None
+        for i in range(len(path_coords) - 1):
+            # Check if point is between two consecutive path coordinates
+            print(f"X: {point[0]} Y: {point[1]}")
+            print(f"Path X: {path_coords[i][0]} Y: {path_coords[i][1]}")
+            print(f"Nex Path X: {path_coords[i + 1][0]} Y: {path_coords[i + 1][1]}")
+            if (point[0] == path_coords[i][0] and point[0] == path_coords[i + 1][0]) or (
+                    point[1] == path_coords[i][1] and point[1] == path_coords[i + 1][1]):
+                index = i + 1
+                print(f"Index: {index}")
+    return index
 
 
 def closest_point_on_path(px, py, last_known_point, search_range=1):
@@ -62,7 +75,7 @@ def closest_point_on_path(px, py, last_known_point, search_range=1):
     closest_dist = float('inf')
     closest_point = None
 
-    last_index = find_closest_path_index(last_known_point)
+    last_index = find_closest_path_index(last_known_point, closest=True)
     start_index = max(0, last_index - search_range)
     end_index = min(len(path_coords) - 1, last_index + search_range)
 
@@ -94,5 +107,3 @@ def distance_along_path(start_point):
     )
 
     return segment_dist + remaining_distance
-
-# Geoms in mujoco

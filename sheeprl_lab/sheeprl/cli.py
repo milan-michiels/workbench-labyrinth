@@ -146,6 +146,7 @@ def run_algorithm(cfg: Dict[str, Any]):
             if cfg.buffer.load_from_exploration:
                 cfg.fabric.devices = exploration_cfg.fabric.devices
                 cfg.fabric.num_nodes = exploration_cfg.fabric.num_nodes
+        cfg.fabric.accelerator = "cpu"
         fabric: Fabric = hydra.utils.instantiate(cfg.fabric, strategy=strategy, _convert_="all")
 
     if hasattr(cfg, "metric") and cfg.metric is not None:

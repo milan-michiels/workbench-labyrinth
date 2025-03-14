@@ -10,6 +10,7 @@ import warnings
 from functools import partial
 from typing import Any, Dict, Sequence
 
+import cv2
 import gymnasium as gym
 import hydra
 import numpy as np
@@ -762,6 +763,7 @@ def main(fabric: Fabric, cfg: Dict[str, Any]):
                 replay_buffer=rb if cfg.buffer.checkpoint else None,
             )
 
+    cv2.destroyAllWindows()
     envs.close()
     if fabric.is_global_zero and cfg.algo.run_test:
         test(player, fabric, cfg, log_dir, greedy=False)

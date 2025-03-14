@@ -6,15 +6,14 @@ import numpy as np
 from gymnasium import utils, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
-
 from path import closest_point_on_path, distance_along_path, path_coords, find_closest_path_index, get_next_targets
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
     metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 50}
 
-    def __init__(self, episode_length=500, resolution=(64, 64), evaluation=False, padding=120,
-                 target_points=5, max_steps=100000,
+    def __init__(self, episode_length=500, resolution=(64, 64), evaluation_vid=False, padding=120,
+                 target_points=5, max_steps=100000, demo=False,
                  **kwargs):
         utils.EzPickle.__init__(self, resolution, episode_length, **kwargs)
 
@@ -28,7 +27,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         )
 
         self.step_number = 0
-        self.evaluation = evaluation
+        self.evaluation_vid = evaluation_vid
         self.padding = padding
 
         self.prev_distance = None
@@ -49,6 +48,8 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.initial_threshold = 180
         self.final_threshold = 12
         self.max_steps = max_steps
+        self.demo = demo
+        self.obs = True
 
     def _get_obs(self):
         return {
@@ -79,12 +80,10 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         return np.concatenate([ball_x_y, [tilt_x_angle, tilt_y_angle]]).astype(np.float32)
 
     def _get_image(self):
+        self.obs = True
         img = self.render()  # Get full RGB image (H, W, 3)
         img = np.ascontiguousarray(img)
         img_rgb = img.copy()
-
-        if self.evaluation:
-            img_rgb = img_rgb[self.padding:, :, :]
 
         # (x, y) position of the ball in world coordinates (meters)
         ball_pos = self.data.geom("ball_geom").xpos[:2]
@@ -115,23 +114,27 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         cropped_img = img_rgb[y1:y2, x1:x2]
 
         obs = cv2.resize(cropped_img, self.resolution, interpolation=cv2.INTER_LINEAR)
-
+        self.obs = False
         return obs
 
     def draw_path_from_point(self, point_on_path, frame, num_segments=3):
         """ Draw path from the given point onwards for a limited number of segments. """
+        frame = frame.astype(np.uint8)
         img_height, img_width, _ = frame.shape
         closest_index = find_closest_path_index(point_on_path)
+
+        start_px = self.world_to_pixel(point_on_path, img_width, img_height)
+        index = min(closest_index, len(path_coords) - 1)
+        end_world = path_coords[index]
+        end_px = self.world_to_pixel(end_world, img_width, img_height)
+
+        cv2.line(frame, tuple(start_px), tuple(end_px), (0, 255, 0), 2)
 
         for i in range(closest_index, min(closest_index + num_segments, len(path_coords) - 1)):
             end_world = path_coords[i + 1]
             end_px = self.world_to_pixel(end_world, img_width, img_height)
 
-            # First segment should be drawn only from point_on_path onwards
-            if i == closest_index:
-                start_world = point_on_path  # Start at point_on_path, not full segment
-            else:
-                start_world = path_coords[i]
+            start_world = path_coords[i]
 
             start_px = self.world_to_pixel(start_world, img_width, img_height)
 
@@ -205,8 +208,11 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
     def render(self):
         frame = super().render()
-        if self.evaluation:
+        if self.evaluation_vid and not self.obs:
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+            if self.last_pos_path is not None:
+                frame=self.draw_path_from_point(self.last_pos_path, frame)
 
             h, w, _ = frame.shape
             padding = self.padding
@@ -224,6 +230,36 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
                 cv2.putText(new_frame, f"Distance: {tot_distance:.4f}", (10, 120),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
             frame = cv2.cvtColor(new_frame, cv2.COLOR_BGR2RGB)
+        if self.demo and not self.obs:
+            demo_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+            # Get screen resolution
+            screen_width, screen_height = pyautogui.size()
+            h, w = demo_frame.shape[:2]
+
+            # Scale while maintaining aspect ratio
+            scale = min(screen_width / w, screen_height / h)
+            new_w = int(w * scale)
+            new_h = int(h * scale)
+            resized_frame = cv2.resize(demo_frame, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+
+            # Create a black canvas with screen size
+            canvas = np.zeros((screen_height, screen_width, 3), dtype=np.uint8)
+
+            # Calculate top-left corner to center the image
+            x_offset = (screen_width - new_w) // 2
+            y_offset = (screen_height - new_h) // 2
+
+            # Place resized frame onto black canvas (centered)
+            canvas[y_offset:y_offset + new_h, x_offset:x_offset + new_w] = resized_frame
+
+            cv2.namedWindow("Evaluation", cv2.WND_PROP_FULLSCREEN)
+            cv2.setWindowProperty("Evaluation", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+            cv2.imshow('Evaluation', canvas)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                return True
+
         return frame
 
     def step(

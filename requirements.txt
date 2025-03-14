@@ -12,3 +12,4 @@ pyopengl
 glfw
 jax[cuda12]
 tensorflow-probability[tf]
+pyautogui

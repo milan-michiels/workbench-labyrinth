@@ -12,20 +12,22 @@ seed: 5
 # Environment
 env:
   id: Labyrinth3D-v0
-  num_envs: 5
+  num_envs: 1
   wrapper:
-    n_envs: 5
+    evaluation: True
+    episode_length: 4000
+    n_envs: 1
 
 
 # Checkpoint
 checkpoint:
   every: 10000
-#  resume_from: logs/runs/dreamer_v3/Labyrinth3D-v0/2025-02-28_15-54-22_dreamer_v3_Labyrinth3D-v0_5/version_0/checkpoint/ckpt_100000_0.ckpt
+  resume_from: logs/runs/dreamer_v3/Labyrinth3D-v0/2025-03-01_10-42-09_dreamer_v3_Labyrinth3D-v0_5/version_0/checkpoint/ckpt_75000_0.ckpt
 
 # Algorithm
 algo:
-  total_steps: 100000
-  #  learning_starts: 0
+  total_steps: 50000
+  learning_starts: 0
   cnn_keys:
     encoder:
       - image
