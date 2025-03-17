@@ -7,7 +7,7 @@ import pyautogui
 from gymnasium import utils, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
-from path import closest_point_on_path, distance_along_path, path_coords, find_closest_path_index, get_next_targets
+from path import closest_point_on_path, distance_along_path, path_coords, find_path_index, get_next_targets
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
@@ -122,7 +122,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         """ Draw path from the given point onwards for a limited number of segments. """
         frame = frame.astype(np.uint8)
         img_height, img_width, _ = frame.shape
-        closest_index = find_closest_path_index(point_on_path)
+        closest_index = find_path_index(point_on_path)
 
         start_px = self.world_to_pixel(point_on_path, img_width, img_height)
         index = min(closest_index, len(path_coords) - 1)

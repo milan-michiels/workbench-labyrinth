@@ -6,8 +6,7 @@ import numpy as np
 from gymnasium import utils, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
-
-from path import closest_point_on_path, distance_along_path, path_coords, find_closest_path_index, get_next_targets
+from path import closest_point_on_path, distance_along_path, path_coords, find_path_index, get_next_targets
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
@@ -49,6 +48,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.tot_reward = 0
         self.demo = demo
         self.obs = True
+        self.last_index = None
 
         for i in range(1, self.intermediate_goals + 1):
             goal_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, f"goal_{i}")
@@ -69,7 +69,8 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
     def _get_target_vectors(self):
         goal_vectors = []
 
-        next_targets_coords = get_next_targets(self.last_pos_path, self.target_points)
+        next_targets_coords = get_next_targets(self.last_pos_path, last_known_index=self.last_index,
+                                               num_next_points=self.target_points)
 
         ball_coords = np.array(self.data.body("ball").xpos[:2])
 
@@ -128,7 +129,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         """ Draw path from the given point onwards for a limited number of segments. """
         frame = frame.astype(np.uint8)
         img_height, img_width, _ = frame.shape
-        closest_index = find_closest_path_index(point_on_path)
+        closest_index = find_path_index(point_on_path, self.last_index)
 
         start_px = self.world_to_pixel(point_on_path, img_width, img_height)
         index = min(closest_index, len(path_coords) - 1)
@@ -318,7 +319,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.set_state(qpos, qvel)
 
         ball_pos = self.data.body("ball").xpos[:2]
-        self.last_pos_path = closest_point_on_path(ball_pos[0], ball_pos[1], path_coords[0])[0]
+        self.last_pos_path = closest_point_on_path(ball_pos[0], ball_pos[1], path_coords[0], 0)[0]
 
         return self._get_obs()
 
@@ -357,9 +358,11 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
     def _compute_distances(self):
         ball_pos = self.data.body("ball").xpos[:2]
-        closest_point, closest_dist_to_path = closest_point_on_path(ball_pos[0], ball_pos[1], self.last_pos_path)
+        closest_point, closest_dist_to_path, last_index = closest_point_on_path(ball_pos[0], ball_pos[1],
+                                                                                self.last_pos_path, self.last_index)
         self.last_pos_path = closest_point
-        distance_to_goal = distance_along_path(closest_point)
+        self.last_index = last_index
+        distance_to_goal = distance_along_path(closest_point, last_index)
         return distance_to_goal, closest_dist_to_path
 
     def _goal_reached(self, site) -> bool:
