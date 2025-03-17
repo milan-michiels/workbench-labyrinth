@@ -96,6 +96,9 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
             target_vector = target - ball_coords
             goal_vectors.append(target_vector)
 
+        while len(goal_vectors) < self.target_points:
+            goal_vectors.append(np.array([0.0, 0.0]))
+
         return np.concatenate(goal_vectors, axis=0)
 
     def _get_state(self):
