@@ -6,6 +6,7 @@ import numpy as np
 from gymnasium import utils, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
+
 from path import closest_point_on_path, distance_along_path, path_coords, find_closest_path_index, get_next_targets
 
 
@@ -36,7 +37,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.target_points = target_points
 
         MujocoEnv.__init__(self, observation_space=self.observation_space,
-                           model_path="resources/labyrinth_no_visible_rewards.xml", camera_name="top_view",
+                           model_path="./resources/labyrinth_no_visible_rewards.xml", camera_name="top_view",
                            frame_skip=1, **kwargs)
 
         end_goal_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, "end_goal")  # Get site ID
@@ -86,7 +87,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         return np.concatenate([ball_x_y, [tilt_x_angle, tilt_y_angle]]).astype(np.float32)
 
     def _get_image(self):
-        self.obs=True
+        self.obs = True
         img = self.render()  # Get full RGB image (H, W, 3)
         img = np.ascontiguousarray(img)
         img_rgb = img.copy()
@@ -120,7 +121,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         cropped_img = img_rgb[y1:y2, x1:x2]
 
         obs = cv2.resize(cropped_img, self.resolution, interpolation=cv2.INTER_LINEAR)
-        self.obs=False
+        self.obs = False
         return obs
 
     def draw_path_from_point(self, point_on_path, frame, num_segments=3):
@@ -218,7 +219,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             if self.last_pos_path is not None:
-                frame=self.draw_path_from_point(self.last_pos_path, frame)
+                frame = self.draw_path_from_point(self.last_pos_path, frame)
 
             h, w, _ = frame.shape
             padding = self.padding
@@ -237,6 +238,8 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
             frame = cv2.cvtColor(new_frame, cv2.COLOR_BGR2RGB)
         if self.demo and not self.obs:
+            import pyautogui
+
             demo_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             # Get screen resolution

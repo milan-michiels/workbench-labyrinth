@@ -3,6 +3,7 @@ from typing import Optional
 import cv2
 import mujoco
 import numpy as np
+import pyautogui
 from gymnasium import utils, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray

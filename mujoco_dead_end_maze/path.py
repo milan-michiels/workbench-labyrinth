@@ -60,13 +60,9 @@ def find_closest_path_index(point, closest=False):
         index = None
         for i in range(len(path_coords) - 1):
             # Check if point is between two consecutive path coordinates
-            print(f"X: {point[0]} Y: {point[1]}")
-            print(f"Path X: {path_coords[i][0]} Y: {path_coords[i][1]}")
-            print(f"Nex Path X: {path_coords[i + 1][0]} Y: {path_coords[i + 1][1]}")
             if (point[0] == path_coords[i][0] and point[0] == path_coords[i + 1][0]) or (
                     point[1] == path_coords[i][1] and point[1] == path_coords[i + 1][1]):
                 index = i + 1
-                print(f"Index: {index}")
     return index
 
 

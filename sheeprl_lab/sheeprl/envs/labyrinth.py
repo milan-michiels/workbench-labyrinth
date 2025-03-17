@@ -8,7 +8,7 @@ from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
 from sheeprl.utils.lab_path import closest_point_on_path, distance_along_path, path_coords, find_closest_path_index, \
     get_next_targets
-import pyautogui
+import importlib
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
@@ -59,6 +59,11 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.tot_reward = 0
         self.demo = demo
         self.obs = True
+
+        if self.demo:
+            self.pyautogui = importlib.import_module('pyautogui')
+        else:
+            self.pyautogui = None
 
         for i in range(1, self.intermediate_goals + 1):
             goal_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, f"goal_{i}")
@@ -251,7 +256,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
             demo_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             # Get screen resolution
-            screen_width, screen_height = pyautogui.size()
+            screen_width, screen_height = self.pyautogui.size()
             h, w = demo_frame.shape[:2]
 
             # Scale while maintaining aspect ratio

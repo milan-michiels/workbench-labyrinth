@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import copy
 import os
+import pathlib
 import warnings
 from functools import partial
 from typing import Any, Dict, Sequence
@@ -18,11 +19,6 @@ import torch
 import torch.nn.functional as F
 from lightning.fabric import Fabric
 from lightning.fabric.wrappers import _FabricModule
-from torch import Tensor
-from torch.distributions import Distribution, Independent, OneHotCategorical
-from torch.optim import Optimizer
-from torchmetrics import SumMetric
-
 from sheeprl.algos.dreamer_v3.agent import WorldModel, build_agent
 from sheeprl.algos.dreamer_v3.loss import reconstruction_loss
 from sheeprl.algos.dreamer_v3.utils import Moments, compute_lambda_values, prepare_obs, test
@@ -40,6 +36,11 @@ from sheeprl.utils.metric import MetricAggregator
 from sheeprl.utils.registry import register_algorithm
 from sheeprl.utils.timer import timer
 from sheeprl.utils.utils import Ratio, save_configs
+from torch import Tensor
+from torch.distributions import Distribution, Independent, OneHotCategorical
+from torch.optim import Optimizer
+from torchmetrics import SumMetric
+
 
 # Decomment the following two lines if you cannot start an experiment with DMC environments
 # os.environ["PYOPENGL_PLATFORM"] = ""
@@ -47,20 +48,20 @@ from sheeprl.utils.utils import Ratio, save_configs
 
 
 def train(
-    fabric: Fabric,
-    world_model: WorldModel,
-    actor: _FabricModule,
-    critic: _FabricModule,
-    target_critic: torch.nn.Module,
-    world_optimizer: Optimizer,
-    actor_optimizer: Optimizer,
-    critic_optimizer: Optimizer,
-    data: Dict[str, Tensor],
-    aggregator: MetricAggregator | None,
-    cfg: Dict[str, Any],
-    is_continuous: bool,
-    actions_dim: Sequence[int],
-    moments: Moments,
+        fabric: Fabric,
+        world_model: WorldModel,
+        actor: _FabricModule,
+        critic: _FabricModule,
+        target_critic: torch.nn.Module,
+        world_optimizer: Optimizer,
+        actor_optimizer: Optimizer,
+        critic_optimizer: Optimizer,
+        data: Dict[str, Tensor],
+        aggregator: MetricAggregator | None,
+        cfg: Dict[str, Any],
+        is_continuous: bool,
+        actions_dim: Sequence[int],
+        moments: Moments,
 ) -> None:
     """Runs one-step update of the agent.
 
@@ -119,12 +120,12 @@ def train(
             if i == 0:
                 posterior = torch.zeros_like(posteriors[:1])
             else:
-                posterior = posteriors[i - 1 : i]
+                posterior = posteriors[i - 1: i]
             recurrent_state, posterior_logits, prior_logits = world_model.rssm.dynamic(
                 posterior,
                 recurrent_state,
-                batch_actions[i : i + 1],
-                data["is_first"][i : i + 1],
+                batch_actions[i: i + 1],
+                data["is_first"][i: i + 1],
             )
             recurrent_states[i] = recurrent_state
             priors_logits[i] = prior_logits
@@ -136,9 +137,9 @@ def train(
             recurrent_state, posterior, _, posterior_logits, prior_logits = world_model.rssm.dynamic(
                 posterior,
                 recurrent_state,
-                batch_actions[i : i + 1],
-                embedded_obs[i : i + 1],
-                data["is_first"][i : i + 1],
+                batch_actions[i: i + 1],
+                embedded_obs[i: i + 1],
+                data["is_first"][i: i + 1],
             )
             recurrent_states[i] = recurrent_state
             priors_logits[i] = prior_logits
@@ -282,14 +283,14 @@ def train(
         objective = advantage
     else:
         objective = (
-            torch.stack(
-                [
-                    p.log_prob(imgnd_act.detach()).unsqueeze(-1)[:-1]
-                    for p, imgnd_act in zip(policies, torch.split(imagined_actions, actions_dim, dim=-1))
-                ],
-                dim=-1,
-            ).sum(dim=-1)
-            * advantage.detach()
+                torch.stack(
+                    [
+                        p.log_prob(imgnd_act.detach()).unsqueeze(-1)[:-1]
+                        for p, imgnd_act in zip(policies, torch.split(imagined_actions, actions_dim, dim=-1))
+                    ],
+                    dim=-1,
+                ).sum(dim=-1)
+                * advantage.detach()
         )
     try:
         entropy = cfg.algo.actor.ent_coef * torch.stack([p.entropy() for p in policies], -1).sum(dim=-1)
@@ -365,6 +366,8 @@ def main(fabric: Fabric, cfg: Dict[str, Any]):
     world_size = fabric.world_size
 
     if cfg.checkpoint.resume_from:
+        temp = pathlib.PosixPath
+        pathlib.PosixPath = pathlib.WindowsPath
         state = fabric.load(cfg.checkpoint.resume_from)
 
     # These arguments cannot be changed
@@ -412,8 +415,8 @@ def main(fabric: Fabric, cfg: Dict[str, Any]):
         raise RuntimeError(f"Unexpected observation type, should be of type Dict, got: {observation_space}")
 
     if (
-        len(set(cfg.algo.cnn_keys.encoder).intersection(set(cfg.algo.cnn_keys.decoder))) == 0
-        and len(set(cfg.algo.mlp_keys.encoder).intersection(set(cfg.algo.mlp_keys.decoder))) == 0
+            len(set(cfg.algo.cnn_keys.encoder).intersection(set(cfg.algo.cnn_keys.decoder))) == 0
+            and len(set(cfg.algo.mlp_keys.encoder).intersection(set(cfg.algo.mlp_keys.decoder))) == 0
     ):
         raise RuntimeError("The CNN keys or the MLP keys of the encoder and decoder must not be disjointed")
     if len(set(cfg.algo.cnn_keys.decoder) - set(cfg.algo.cnn_keys.encoder)) > 0:
@@ -557,9 +560,9 @@ def main(fabric: Fabric, cfg: Dict[str, Any]):
             with timer("Time/env_interaction_time", SumMetric, sync_on_compute=False):
                 # Sample an action given the observation received by the environment
                 if (
-                    iter_num <= learning_starts
-                    and cfg.checkpoint.resume_from is None
-                    and "minedojo" not in cfg.env.wrapper._target_.lower()
+                        iter_num <= learning_starts
+                        and cfg.checkpoint.resume_from is None
+                        and "minedojo" not in cfg.env.wrapper._target_.lower()
                 ):
                     real_actions = actions = np.array(envs.action_space.sample())
                     if not is_continuous:
@@ -673,8 +676,8 @@ def main(fabric: Fabric, cfg: Dict[str, Any]):
                 with timer("Time/train_time", SumMetric, sync_on_compute=cfg.metric.sync_on_compute):
                     for i in range(per_rank_gradient_steps):
                         if (
-                            cumulative_per_rank_gradient_steps % cfg.algo.critic.per_rank_target_network_update_freq
-                            == 0
+                                cumulative_per_rank_gradient_steps % cfg.algo.critic.per_rank_target_network_update_freq
+                                == 0
                         ):
                             tau = 1 if cumulative_per_rank_gradient_steps == 0 else cfg.algo.critic.tau
                             for cp, tcp in zip(critic.module.parameters(), target_critic.parameters()):
@@ -736,7 +739,7 @@ def main(fabric: Fabric, cfg: Dict[str, Any]):
 
         # Checkpoint Model
         if (cfg.checkpoint.every > 0 and policy_step - last_checkpoint >= cfg.checkpoint.every) or (
-            iter_num == total_iters and cfg.checkpoint.save_last
+                iter_num == total_iters and cfg.checkpoint.save_last
         ):
             last_checkpoint = policy_step
             state = {

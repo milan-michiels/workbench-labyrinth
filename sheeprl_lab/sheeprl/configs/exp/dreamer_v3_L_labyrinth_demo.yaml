@@ -15,13 +15,15 @@ env:
   num_envs: 1
   wrapper:
     evaluation_vid: True
-    demo: True
+    demo: False
     episode_length: 1500
 
 # Checkpoint
 checkpoint:
-  every: 10000
+  every: null
   resume_from: logs/runs/dreamer_v3/Labyrinth3D-v0/2025-02-28_15-54-22_dreamer_v3_Labyrinth3D-v0_5/version_0/checkpoint/ckpt_100000_0.ckpt
+  save_last: False
+  keep_last: 0
 
 # Algorithm
 algo:

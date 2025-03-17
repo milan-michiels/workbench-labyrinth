@@ -3,6 +3,7 @@ from typing import Optional
 import cv2
 import mujoco
 import numpy as np
+import pyautogui
 from gymnasium import utils, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
@@ -13,7 +14,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
     metadata = {'render_modes': ['human', 'rgb_array', 'depth_array'], 'render_fps': 50}
 
     def __init__(self, episode_length=500, resolution=(64, 64), evaluation_vid=False, padding=120,
-                 target_points=5,
+                 target_points=5,demo=False,
                  **kwargs):
         utils.EzPickle.__init__(self, resolution, episode_length, **kwargs)
 
