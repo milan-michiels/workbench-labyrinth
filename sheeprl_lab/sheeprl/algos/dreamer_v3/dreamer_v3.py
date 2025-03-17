@@ -366,9 +366,13 @@ def main(fabric: Fabric, cfg: Dict[str, Any]):
     world_size = fabric.world_size
 
     if cfg.checkpoint.resume_from:
-        temp = pathlib.PosixPath
-        pathlib.PosixPath = pathlib.WindowsPath
+        if os.name == "nt":
+            temp = pathlib.PosixPath
+            pathlib.PosixPath = pathlib.WindowsPath
         state = fabric.load(cfg.checkpoint.resume_from)
+
+        if os.name == "nt":
+            pathlib.PosixPath = temp
 
     # These arguments cannot be changed
     cfg.env.frame_stack = -1
