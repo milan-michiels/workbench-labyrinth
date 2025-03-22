@@ -7,7 +7,6 @@ import numpy as np
 from gymnasium import utils, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
-
 from sheeprl.utils.lab_path import closest_point_on_path, distance_along_path, path_coords, find_path_index, \
     get_next_targets
 
@@ -21,6 +20,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
                  **kwargs):
         utils.EzPickle.__init__(self, resolution, episode_length * n_envs, **kwargs)
 
+        self.start_episode_length = episode_length
         self.episode_length = episode_length
         self.resolution = resolution
         self.observation_space = spaces.Dict(
@@ -290,7 +290,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         return frame
 
     def define_episode_length(self):
-        return self.end_steps + ((self.episode_length * self.n_envs) - self.end_steps) * np.exp(
+        return self.end_steps + ((self.start_episode_length * self.n_envs) - self.end_steps) * np.exp(
             -self.decay_rate * self.total_steps)
 
     def step(
@@ -308,9 +308,9 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.last_reward = reward
 
         done = bool(self._goal_reached("end_goal"))
-        episode_length = self.define_episode_length()
+        episode_length = self.episode_length
         if self.evaluation_vid:
-            episode_length = self.episode_length
+            episode_length = self.start_episode_length
         truncated = self.step_number >= episode_length
         if done:
             self.succes += 1
@@ -326,6 +326,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.step_number = 0
         self.prev_distance = None
         self.tot_reward = 0
+        self.episode_length = self.define_episode_length()
 
         # Copy the initial state so we don't modify the original
         qpos = self.init_qpos.copy()
