@@ -25,7 +25,7 @@ checkpoint:
 # Algorithm
 algo:
   total_steps: 100000
-  #  learning_starts: 0
+  learning_starts: 8000
   cnn_keys:
     encoder:
       - image
@@ -43,7 +43,7 @@ algo:
 
 # Metric
 metric:
-  log_every: 4000
+  log_every: 8000
 
 fabric:
   accelerator: cuda

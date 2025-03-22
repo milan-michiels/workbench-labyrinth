@@ -366,13 +366,13 @@ def main(fabric: Fabric, cfg: Dict[str, Any]):
     world_size = fabric.world_size
 
     if cfg.checkpoint.resume_from:
-        if os.name == "nt":
-            temp = pathlib.PosixPath
-            pathlib.PosixPath = pathlib.WindowsPath
+        # if os.name == "nt":
+        #     temp = pathlib.PosixPath
+        #     pathlib.PosixPath = pathlib.WindowsPath
         state = fabric.load(cfg.checkpoint.resume_from)
 
-        if os.name == "nt":
-            pathlib.PosixPath = temp
+        # if os.name == "nt":
+        #     pathlib.PosixPath = temp
 
     # These arguments cannot be changed
     cfg.env.frame_stack = -1
@@ -770,7 +770,7 @@ def main(fabric: Fabric, cfg: Dict[str, Any]):
                 replay_buffer=rb if cfg.buffer.checkpoint else None,
             )
 
-    cv2.destroyAllWindows()
+    # cv2.destroyAllWindows()
     envs.close()
     if fabric.is_global_zero and cfg.algo.run_test:
         test(player, fabric, cfg, log_dir, greedy=False)

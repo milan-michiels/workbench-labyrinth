@@ -326,7 +326,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.step_number = 0
         self.prev_distance = None
         self.tot_reward = 0
-        self.episode_length = self.define_episode_length()
+        self.episode_length = int(self.define_episode_length())
 
         # Copy the initial state so we don't modify the original
         qpos = self.init_qpos.copy()
