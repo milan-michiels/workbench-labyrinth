@@ -5,20 +5,21 @@ path_coords = [
     [-0.4, -0.29],  # path1
     [-0.05, -0.29],  # path2
     [-0.05, -0.43],  # path3
-    [0.42, -0.43],  # path4
-    [0.42, -0.10],  # path5
-    [0.20, -0.10],  # path6
-    [0.20, 0.07],  # path7
-    [-0.17, 0.07],  # path8
-    [-0.17, 0.27],  # path9
-    [-0.31, 0.27],  # path10
-    [-0.31, -0.12],  # path11
-    [-0.43, -0.12],  # path12
-    [-0.43, 0.42],  # path13
-    [0.18, 0.42],  # path14
-    [0.18, 0.20],  # path15
-    [0.43, 0.20],  # path16
-    [0.40, 0.40]  # path17
+    [0.24, -0.40],  # path4
+    [0.40, -0.28],  # path5
+    [0.42, -0.10],  # path6
+    [0.20, -0.10],  # path7
+    [0.20, 0.07],  # path8
+    [-0.17, 0.07],  # path9
+    [-0.17, 0.27],  # path10
+    [-0.31, 0.27],  # path11
+    [-0.31, -0.12],  # path12
+    [-0.43, -0.12],  # path13
+    [-0.43, 0.42],  # path14
+    [0.18, 0.42],  # path15
+    [0.18, 0.20],  # path16
+    [0.43, 0.20],  # path17
+    [0.40, 0.40]  # path18
 ]
 
 
@@ -48,7 +49,7 @@ def closest_point_on_segment(px, py, x1, y1, x2, y2):
 def get_next_targets(last_known_point, last_known_index, num_next_points):
     """ Get the next num_next_points targets along the path. """
     last_index = find_path_index(last_known_point, last_known_index=last_known_index)
-    next_idx = min(len(path_coords), last_index + num_next_points + 1)
+    next_idx = min(len(path_coords) - 1, last_index + num_next_points)
     next_targets = path_coords[last_index:next_idx]
     return next_targets
 
@@ -62,15 +63,31 @@ def find_path_index(point, last_known_index=None, search_range=1, closest=False)
         start_idx = 0
         end_idx = len(path_coords)
     if closest:
-        index = min(range(start_idx, end_idx), key=lambda i: distance(path_coords[i], point))
+        closest_index = min(range(start_idx, end_idx), key=lambda i: distance(path_coords[i], point))
+        # Ensure the index does not jump ahead by more than 1
+        if last_known_index is None or closest_index <= last_known_index + 1:
+            return closest_index
+        return last_known_index  # Default to last known index if closest is not valid
     else:
-        index = None
+        index = last_known_index
         for i in range(start_idx, end_idx):
             # Check if point is between two consecutive path coordinates
-            if (point[0] == path_coords[i][0] and point[0] == path_coords[i + 1][0]) or (
-                    point[1] == path_coords[i][1] and point[1] == path_coords[i + 1][1]):
-                index = i + 1
-                break
+            x1, y1 = path_coords[i]
+            x2, y2 = path_coords[i + 1]
+            px, py = point
+
+            left = (x2 - x1) * (py - y1)
+            right = (x2 - x1) * (py - y1)
+            # Check if point is on the line segment
+            if math.isclose(left, right, rel_tol=1e-12):  # Collinearity condition
+                if (min(x1, x2) - 1e-9 <= px <= max(x1, x2) + 1e-9
+                        and min(y1, y2) - 1e-9 <= py <= max(y1, y2) + 1e-9):  # Bounding box check
+                    new_index = i + 1
+
+                    # Prevent index from jumping ahead more than 1
+                    if last_known_index is None or new_index == last_known_index + 1:
+                        index = new_index
+                    break
     return index
 
 
@@ -102,7 +119,11 @@ def distance_along_path(start_point, last_known_index):
     start_index = find_path_index(start_point, last_known_index=last_known_index)
 
     # Bereken de afstand vanaf het startpunt tot het volgende knooppunt
-    next_point = path_coords[start_index + 1]
+    if start_index == len(path_coords) - 1:
+        next_point = path_coords[-1]
+    else:
+        next_point = path_coords[start_index + 1]
+
     segment_dist = distance(start_point, next_point)
 
     # Bereken de resterende afstand vanaf dat knooppunt tot de goal
@@ -110,4 +131,9 @@ def distance_along_path(start_point, last_known_index):
         distance(path_coords[i], path_coords[i + 1]) for i in range(start_index + 1, len(path_coords) - 1)
     )
 
-    return segment_dist + remaining_distance
+    total_distance = segment_dist + remaining_distance
+
+    if start_index == len(path_coords) - 1:
+        total_distance = segment_dist
+
+    return total_distance
