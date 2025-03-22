@@ -1,5 +1,5 @@
 from typing import Optional
-
+import importlib
 import cv2
 import mujoco
 import numpy as np
@@ -50,6 +50,11 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.obs = True
         self.last_index = None
 
+        if self.demo:
+            self.pyautogui = importlib.import_module('pyautogui')
+        else:
+            self.pyautogui = None
+
         for i in range(1, self.intermediate_goals + 1):
             goal_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_SITE, f"goal_{i}")
             intermediate_goal_pos = self.model.site_pos[goal_id, :2]
@@ -78,6 +83,9 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
             target = np.array(target)
             target_vector = target - ball_coords
             goal_vectors.append(target_vector)
+
+        while len(goal_vectors) < self.target_points:
+            goal_vectors.append(np.array([0.0, 0.0]))
 
         return np.concatenate(goal_vectors, axis=0)
 
@@ -239,12 +247,10 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
             frame = cv2.cvtColor(new_frame, cv2.COLOR_BGR2RGB)
         if self.demo and not self.obs:
-            import pyautogui
-
             demo_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             # Get screen resolution
-            screen_width, screen_height = pyautogui.size()
+            screen_width, screen_height = self.pyautogui.size()
             h, w = demo_frame.shape[:2]
 
             # Scale while maintaining aspect ratio
