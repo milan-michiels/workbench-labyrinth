@@ -9,6 +9,11 @@ from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
 from sheeprl.utils.lab_path import closest_point_on_path, distance_along_path, path_coords, find_path_index, \
     get_next_targets
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
@@ -327,6 +332,8 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.prev_distance = None
         self.tot_reward = 0
         self.episode_length = int(self.define_episode_length())
+
+        logger.info(f"Episode length: {self.episode_length}")
 
         # Copy the initial state so we don't modify the original
         qpos = self.init_qpos.copy()
