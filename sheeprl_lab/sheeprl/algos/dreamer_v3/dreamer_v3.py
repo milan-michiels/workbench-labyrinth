@@ -6,12 +6,10 @@ from __future__ import annotations
 
 import copy
 import os
-import pathlib
 import warnings
 from functools import partial
 from typing import Any, Dict, Sequence
 
-import cv2
 import gymnasium as gym
 import hydra
 import numpy as np
@@ -19,6 +17,11 @@ import torch
 import torch.nn.functional as F
 from lightning.fabric import Fabric
 from lightning.fabric.wrappers import _FabricModule
+from torch import Tensor
+from torch.distributions import Distribution, Independent, OneHotCategorical
+from torch.optim import Optimizer
+from torchmetrics import SumMetric
+
 from sheeprl.algos.dreamer_v3.agent import WorldModel, build_agent
 from sheeprl.algos.dreamer_v3.loss import reconstruction_loss
 from sheeprl.algos.dreamer_v3.utils import Moments, compute_lambda_values, prepare_obs, test
@@ -36,10 +39,6 @@ from sheeprl.utils.metric import MetricAggregator
 from sheeprl.utils.registry import register_algorithm
 from sheeprl.utils.timer import timer
 from sheeprl.utils.utils import Ratio, save_configs
-from torch import Tensor
-from torch.distributions import Distribution, Independent, OneHotCategorical
-from torch.optim import Optimizer
-from torchmetrics import SumMetric
 
 
 # Decomment the following two lines if you cannot start an experiment with DMC environments

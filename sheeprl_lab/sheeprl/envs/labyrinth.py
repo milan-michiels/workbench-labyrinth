@@ -7,13 +7,9 @@ import numpy as np
 from gymnasium import utils, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 from numpy._typing import NDArray
+
 from sheeprl.utils.lab_path import closest_point_on_path, distance_along_path, path_coords, find_path_index, \
     get_next_targets
-import logging
-
-logging.basicConfig(level=logging.INFO)
-
-logger = logging.getLogger(__name__)
 
 
 class LabyrinthEnv(MujocoEnv, utils.EzPickle):
@@ -43,12 +39,7 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.succes = 0
         self.intermediate_goals = intermediate_goals
         self.target_points = target_points
-        # self.end_steps = 1200
-        # self.decay_rate = 0.00005
         self.n_envs = n_envs
-        # self.max_steps = max_steps
-        # self.initial_threshold = 40
-        # self.final_threshold = 8
         self.total_steps = 0
 
         MujocoEnv.__init__(self, observation_space=self.observation_space,
@@ -294,10 +285,6 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         return frame
 
-    # def define_episode_length(self):
-    #     return self.end_steps + ((self.start_episode_length * self.n_envs) - self.end_steps) * np.exp(
-    #         -self.decay_rate * self.total_steps)
-
     def step(
             self, action: NDArray[np.float32]
     ):
@@ -331,8 +318,6 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.step_number = 0
         self.prev_distance = None
         self.tot_reward = 0
-
-        logger.info(f"Episode length: {self.episode_length}")
 
         # Copy the initial state so we don't modify the original
         qpos = self.init_qpos.copy()
@@ -384,13 +369,6 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         distance_reward = self.prev_distance - distance_to_goal
 
         self.prev_distance = distance_to_goal
-
-        # time_penalty = 0.0
-        # progress = min(self.total_steps / self.max_steps, 1.0)
-        # current_threshold = self.final_threshold + (self.initial_threshold - self.final_threshold) * (0.5 ** (self.decay_rate * progress))
-        #
-        # if self.data.time > current_threshold:
-        #     time_penalty = self.data.time * 0.001
 
         if closest_dist_to_path > 0.15:
             distance_reward -= closest_dist_to_path * 0.02
