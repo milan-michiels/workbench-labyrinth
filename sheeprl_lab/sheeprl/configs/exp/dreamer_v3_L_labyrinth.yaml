@@ -12,9 +12,9 @@ seed: 5
 # Environment
 env:
   id: Labyrinth3D-v0
-  num_envs: 2
+  num_envs: 1
   wrapper:
-    n_envs: 2
+    n_envs: 1
 
 
 # Checkpoint

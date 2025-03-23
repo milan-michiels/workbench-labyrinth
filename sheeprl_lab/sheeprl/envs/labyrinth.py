@@ -43,8 +43,8 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.succes = 0
         self.intermediate_goals = intermediate_goals
         self.target_points = target_points
-        self.end_steps = 1200
-        self.decay_rate = 0.00005
+        # self.end_steps = 1200
+        # self.decay_rate = 0.00005
         self.n_envs = n_envs
         # self.max_steps = max_steps
         # self.initial_threshold = 40
@@ -294,9 +294,9 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
 
         return frame
 
-    def define_episode_length(self):
-        return self.end_steps + ((self.start_episode_length * self.n_envs) - self.end_steps) * np.exp(
-            -self.decay_rate * self.total_steps)
+    # def define_episode_length(self):
+    #     return self.end_steps + ((self.start_episode_length * self.n_envs) - self.end_steps) * np.exp(
+    #         -self.decay_rate * self.total_steps)
 
     def step(
             self, action: NDArray[np.float32]
@@ -331,7 +331,6 @@ class LabyrinthEnv(MujocoEnv, utils.EzPickle):
         self.step_number = 0
         self.prev_distance = None
         self.tot_reward = 0
-        self.episode_length = int(self.define_episode_length())
 
         logger.info(f"Episode length: {self.episode_length}")
 
