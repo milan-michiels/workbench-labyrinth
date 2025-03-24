@@ -15,7 +15,7 @@ env:
   num_envs: 1
   wrapper:
     evaluation_vid: True
-    demo: False
+    demo: True
     episode_length: 1500
 
 # Checkpoint

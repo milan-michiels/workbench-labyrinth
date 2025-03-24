@@ -22,8 +22,7 @@ checkpoint:
 
 # Algorithm
 algo:
-  total_steps: 220000
-  learning_starts: 100000
+  total_steps: 100000
   cnn_keys:
     encoder:
       - image
