@@ -1,7 +1,5 @@
 # Milan-Workbench
 
----
-
 ## Overview
 
 This repository contains the implementation of Reinforcement Learning environments and agents in the Labyrinth digital
@@ -13,8 +11,6 @@ algorithms like PPO, SAC, etc. to train the agent. Because DreamerV3 is only imp
 clone the whole sheeprl repository and integrate our environments in it. Because the whole sheeprl isn't fully relevant
 we only showed the relevant parts in the project structure. The repo has its own README so feel free to read it to
 understand the sheeprl toolkit.
-
----
 
 ## Project Structure
 
@@ -81,5 +77,3 @@ understand the sheeprl toolkit.
         ├── sheeprl.py
         └── sheeprl_eval.py
 ```
-
----
