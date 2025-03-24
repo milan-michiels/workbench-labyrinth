@@ -49,51 +49,53 @@
             <geom name="wall_maze16" type="box" size="0.238 0.008 0.04" pos="-0.14 0.35 0.05" rgba="255 255 255 1"
                   mass="0"/>
 
-            <geom name="path1" type="box" size="0.02 0.002 0.04" pos="-0.4 -0.4 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path2" type="box" size="0.02 0.002 0.04" pos="-0.4 -0.29 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path3" type="box" size="0.02 0.002 0.04" pos="-0.05 -0.29 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path4" type="box" size="0.02 0.002 0.04" pos="-0.05 -0.43 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path5" type="box" size="0.02 0.002 0.04" pos="0.42 -0.43 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path6" type="box" size="0.02 0.002 0.04" pos="0.42 -0.10 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path7" type="box" size="0.02 0.002 0.04" pos="0.20 -0.10 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path8" type="box" size="0.02 0.002 0.04" pos="0.20 0.07 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path9" type="box" size="0.02 0.002 0.04" pos="-0.17 0.07 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path10" type="box" size="0.02 0.002 0.04" pos="-0.17 0.27 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path11" type="box" size="0.02 0.002 0.04" pos="-0.31 0.27 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path12" type="box" size="0.02 0.002 0.04" pos="-0.31 -0.12 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path13" type="box" size="0.02 0.002 0.04" pos="-0.43 -0.12 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path14" type="box" size="0.02 0.002 0.04" pos="-0.43 0.42 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path15" type="box" size="0.02 0.002 0.04" pos="0.18 0.42 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path16" type="box" size="0.02 0.002 0.04" pos="0.18 0.20 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path17" type="box" size="0.02 0.002 0.04" pos="0.43 0.20 0.05" rgba="255 255 255 1"
-                  mass="0"/>
-            <geom name="path18" type="box" size="0.02 0.002 0.04" pos="0.40 0.40 0.05" rgba="255 255 255 1"
-                  mass="0"/>
+            <!-- Path corners-->
+<!--            <geom name="path1" type="box" size="0.02 0.002 0.04" pos="-0.4 -0.4 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path2" type="box" size="0.02 0.002 0.04" pos="-0.4 -0.29 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path3" type="box" size="0.02 0.002 0.04" pos="-0.05 -0.29 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path4" type="box" size="0.02 0.002 0.04" pos="-0.05 -0.43 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path5" type="box" size="0.02 0.002 0.04" pos="0.42 -0.43 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path6" type="box" size="0.02 0.002 0.04" pos="0.42 -0.10 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path7" type="box" size="0.02 0.002 0.04" pos="0.20 -0.10 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path8" type="box" size="0.02 0.002 0.04" pos="0.20 0.07 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path9" type="box" size="0.02 0.002 0.04" pos="-0.17 0.07 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path10" type="box" size="0.02 0.002 0.04" pos="-0.17 0.27 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path11" type="box" size="0.02 0.002 0.04" pos="-0.31 0.27 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path12" type="box" size="0.02 0.002 0.04" pos="-0.31 -0.12 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path13" type="box" size="0.02 0.002 0.04" pos="-0.43 -0.12 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path14" type="box" size="0.02 0.002 0.04" pos="-0.43 0.42 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path15" type="box" size="0.02 0.002 0.04" pos="0.18 0.42 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path16" type="box" size="0.02 0.002 0.04" pos="0.18 0.20 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path17" type="box" size="0.02 0.002 0.04" pos="0.43 0.20 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
+<!--            <geom name="path18" type="box" size="0.02 0.002 0.04" pos="0.40 0.40 0.05" rgba="255 255 255 1"-->
+<!--                  mass="0"/>-->
 
-            <site name="test" pos="-0.3219 0.1176 0.025" type="box" size="0.02 0.02 0.01" rgba="1 1 0 1"/>
 
-            <!-- Sites -->
+            <!-- Intermediate goals -->
             <site name="goal_1" pos="0.20 -0.42 0.025" type="box" size="0.03 0.07 0.01" rgba="1 1 0 0"/>
             <site name="goal_2" pos="0.20 0.05 0.025" type="box" size="0.07 0.03 0.01" rgba="1 1 0 0"/>
             <site name="goal_3" pos="-0.25 0.27 0.025" type="box" size="0.05 0.05 0.01" rgba="1 1 0 0"/>
             <site name="goal_4" pos="-0.42 0.42 0.025" type="box" size="0.05 0.05 0.01" rgba="1 1 0 0"/>
             <site name="goal_5" pos="0.28 0.20 0.025" type="box" size="0.05 0.03 0.01" rgba="1 1 0 0"/>
+
+            <!-- End Goal -->
             <site name="end_goal" pos="0.40 0.40 0.025" type="box" size="0.05 0.05 0.01" rgba="0 0 1 0"/>
         </body>
 

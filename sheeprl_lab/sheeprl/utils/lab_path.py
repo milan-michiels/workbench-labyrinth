@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 
+# Coordinates of corner points of the path
 path_coords = [
     [-0.4, -0.4],  # path0
     [-0.4, -0.29],  # path1
@@ -32,17 +33,17 @@ def distance(p1, p2):
 
 def closest_point_on_segment(px, py, x1, y1, x2, y2):
     """ Find the closest point on a line segment to the given point. """
-    # Bereken de vector van het lijnsegment
+    # Calculate the projection of the point onto the line segment
     segment_vector = np.array([x2 - x1, y2 - y1])
     point_vector = np.array([px - x1, py - y1])
 
-    # Projecteer het punt op het lijnsegment
+    # Project the point onto the line segment
     segment_length = np.linalg.norm(segment_vector)
     if segment_length == 0:
-        return x1, y1  # het lijnsegment is een punt, return het beginpunt
+        return x1, y1  # the line segment is a point, return the starting point
 
     projection = np.dot(point_vector, segment_vector) / segment_length
-    projection = max(0, min(projection, segment_length))  # zorg dat het tussen 0 en de lengte van het segment valt
+    projection = max(0, min(projection, segment_length))  # make sure it falls between 0 and the length of the segment
 
     closest_point = np.array([x1, y1]) + (projection / segment_length) * segment_vector
     return closest_point[0], closest_point[1]
@@ -123,14 +124,14 @@ def distance_along_path(start_point, last_known_index):
     """ Calculate the distance along the path from the given point to the goal. """
     start_index = find_path_index(start_point, last_known_index=last_known_index)
 
-    # Bereken de afstand vanaf het startpunt tot het volgende knooppunt
+    # Calculate the distance from the starting point to the next node
     if start_index >= len(path_coords) - 1:
         return distance(start_point, path_coords[-1])
 
     next_point = path_coords[start_index + 1]
     segment_dist = distance(start_point, next_point)
 
-    # Bereken de resterende afstand vanaf dat knooppunt tot de goal
+    # Calculate the remaining distance from that node to the goal
     remaining_distance = sum(
         distance(path_coords[i], path_coords[i + 1]) for i in range(start_index + 1, len(path_coords) - 1)
     )

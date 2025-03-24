@@ -58,9 +58,6 @@ class LabyrinthEnv(gym.Env):
         self.observation_space = spaces.Box(
             low=0, high=255, shape=self.maze.shape, dtype=np.uint8
         )
-        # self.observation_space = spaces.Box(
-        #     low=0, high=255, shape=(self.obs_resolution, self.obs_resolution), dtype=np.uint8
-        # )
 
         # Initialize state
         self.state = None
@@ -77,34 +74,19 @@ class LabyrinthEnv(gym.Env):
             0.0  # initial velocity y
         ], dtype=np.float32)
 
+        # Calculate initial distance to goal in straight line
         self.prev_distance = np.linalg.norm(self.state[:2] - self.goal_pos)
 
         return self._get_observation(), {}
 
     def _get_observation(self):
+        """ Get the current observation (image) of the environment. """
         obs = np.zeros(self.maze.shape, dtype=np.uint8)
         obs[self.maze == 1] = 255  # Walls
         x, y, _, _ = self.state
 
-        # x = np.clip(int(x), 0, self.maze.shape[1] - 0.1)
-        # y = np.clip(int(y), 0, self.maze.shape[0] - 0.1)
-
         obs[int(y), int(x)] = 128  # Ball position
         return obs
-
-    # def _get_observation(self):
-    #     upscale = self.obs_resolution / self.maze.shape[0]
-    #     resized_maze = zoom(self.maze, (upscale, upscale), order=0)  # Upscale by a factor of 16
-    #
-    #     obs = np.zeros((self.obs_resolution, self.obs_resolution), dtype=np.uint8)
-    #     obs[resized_maze == 1] = 255  # Walls
-    #     x, y, _, _ = self.state
-    #
-    #     x = np.clip(x*upscale, 0, self.obs_resolution-0.1)
-    #     y = np.clip(y*upscale, 0, self.obs_resolution-0.1)
-    #
-    #     obs[int(y), int(x)] = 128  # Ball position
-    #     return obs
 
     def _check_collision(self, x, y):
         """
@@ -210,9 +192,6 @@ class LabyrinthEnv(gym.Env):
         # Update positions
         new_x = x + vx * self.dt
         new_y = y + vy * self.dt
-
-        # new_x = np.clip(new_x, 0, self.maze_size[1] - 0.1)
-        # new_y = np.clip(new_y, 0, self.maze_size[0] - 0.1)
 
         if self._check_collision(new_x, new_y):
             # Bounce back with some energy loss

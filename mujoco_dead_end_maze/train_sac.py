@@ -40,6 +40,7 @@ def main():
         while not episode_over:
             action, _states = model.predict(obs)
             obs, reward, terminated, truncated, info = eval_env.step(action)
+            # Necessary to demo the agent aka render the environment
             # should_exit = eval_env.render()
             # if should_exit.dtype == bool and should_exit:
             #     break

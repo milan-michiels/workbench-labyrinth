@@ -239,7 +239,6 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/python,macos,windows
 **/sac_labyrinth_tensorboard/
 **/vids/
-/bare_gym/vids/
 **/output/
 /sheeprl_lab/sheeprl.egg-info/
 /sheeprl_lab/logs/

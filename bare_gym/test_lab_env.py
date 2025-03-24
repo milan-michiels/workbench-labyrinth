@@ -11,7 +11,7 @@ def main():
         entry_point=LabyrinthEnv
     )
 
-    # Create the training environment (no rendering to speed up training)
+    # Create the training environment (no human rendering to speed up training)
     train_env = gymnasium.make("gymnasium_env/GridWorld-v0", render_mode="rgb_array", max_episode_steps=1000)
     train_env = RecordEpisodeStatistics(train_env)
 
