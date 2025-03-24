@@ -1,0 +1,12 @@
+defaults:
+  - default
+  - _self_
+
+id: Labyrinth3D-v1
+sync_env: True
+num_envs: 5
+
+wrapper:
+  _target_: sheeprl.envs.labyrinth_no_intermediate.LabyrinthEnv
+  render_mode: rgb_array
+  episode_length: 4000

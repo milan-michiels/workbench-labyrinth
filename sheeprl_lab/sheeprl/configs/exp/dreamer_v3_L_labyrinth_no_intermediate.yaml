@@ -3,7 +3,7 @@
 defaults:
   - dreamer_v3
   - override /algo: dreamer_v3_L
-  - override /env: labyrinth
+  - override /env: labyrinth_no_intermediate
   - _self_
 
 # Experiment
@@ -11,22 +11,19 @@ seed: 5
 
 # Environment
 env:
-  id: Labyrinth3D-v0
+  id: Labyrinth3D-v1
   num_envs: 1
   wrapper:
     n_envs: 1
-    evaluation_vid: True
-
 
 # Checkpoint
 checkpoint:
-  every: 4000
-  resume_from: logs/runs/dreamer_v3/Labyrinth3D-v0/2025-03-23_12-07-17_dreamer_v3_Labyrinth3D-v0_5/version_0/checkpoint/ckpt_90000_0.ckpt
+  every: 8000
 
 # Algorithm
 algo:
-  total_steps: 90000
-  learning_starts: 0
+  total_steps: 220000
+  learning_starts: 100000
   cnn_keys:
     encoder:
       - image

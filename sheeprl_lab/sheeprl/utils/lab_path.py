@@ -51,6 +51,7 @@ def closest_point_on_segment(px, py, x1, y1, x2, y2):
 def get_next_targets(last_known_point, last_known_index, num_next_points):
     """ Get the next num_next_points targets along the path. """
     last_index = find_path_index(last_known_point, last_known_index=last_known_index)
+    last_index = min(last_index, len(path_coords) - 1)
     next_idx = min(len(path_coords) - 1, last_index + num_next_points)
     next_targets = path_coords[last_index:next_idx]
     return next_targets
@@ -60,6 +61,7 @@ def find_path_index(point, last_known_index=None, search_range=1, closest=False)
     """ Find the nearest index point in the path_coords list. """
     if last_known_index is not None:
         start_idx = max(0, last_known_index - search_range)
+        start_idx = min(start_idx, len(path_coords) - 1)
         end_idx = min(len(path_coords), last_known_index + search_range + 1)
     else:
         start_idx = 0
@@ -72,7 +74,7 @@ def find_path_index(point, last_known_index=None, search_range=1, closest=False)
         return last_known_index  # Default to last known index if closest is not valid
     else:
         index = last_known_index
-        for i in range(start_idx, end_idx):
+        for i in range(start_idx, end_idx - 1):
             # Check if point is between two consecutive path coordinates
             x1, y1 = path_coords[i]
             x2, y2 = path_coords[i + 1]
@@ -100,6 +102,7 @@ def closest_point_on_path(px, py, last_known_point, last_known_index, search_ran
 
     last_index = find_path_index(last_known_point, last_known_index, closest=True)
     start_index = max(0, last_index - search_range)
+    start_index = min(start_index, len(path_coords) - 1)
     end_index = min(len(path_coords) - 1, last_index + search_range)
 
     for i in range(start_index, end_index):
@@ -121,11 +124,10 @@ def distance_along_path(start_point, last_known_index):
     start_index = find_path_index(start_point, last_known_index=last_known_index)
 
     # Bereken de afstand vanaf het startpunt tot het volgende knooppunt
-    if start_index == len(path_coords) - 1:
-        next_point = path_coords[-1]
-    else:
-        next_point = path_coords[start_index + 1]
+    if start_index >= len(path_coords) - 1:
+        return distance(start_point, path_coords[-1])
 
+    next_point = path_coords[start_index + 1]
     segment_dist = distance(start_point, next_point)
 
     # Bereken de resterende afstand vanaf dat knooppunt tot de goal
@@ -133,9 +135,4 @@ def distance_along_path(start_point, last_known_index):
         distance(path_coords[i], path_coords[i + 1]) for i in range(start_index + 1, len(path_coords) - 1)
     )
 
-    total_distance = segment_dist + remaining_distance
-
-    if start_index == len(path_coords) - 1:
-        total_distance = segment_dist
-
-    return total_distance
+    return segment_dist + remaining_distance
